@@ -3,6 +3,7 @@
 */
 
 :root {
+  --hue: 270;
   --gradient: #9d4edd;
   --radius: 0.5rem;
 
@@ -51,6 +52,7 @@
 }
 
 .dark {
+  --hue: 270;
   --gradient: #9d4edd;
   --brightness: 255 100% 100%;
 
@@ -108,7 +110,7 @@ body[data-cc-settings-open="true"] #chitchat-settings-portal {
 #chitchat-settings-portal {
   position: fixed;
   inset: 0;
-  background: rgba(17, 12, 30, 0.55);
+  background: hsla(var(--overlay) / 0.55);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -127,7 +129,7 @@ body[data-cc-settings-open="true"] #chitchat-settings-portal {
   padding: 1.25rem 1.5rem;
   background: hsl(var(--panel));
   color: hsl(var(--panel-foreground));
-  box-shadow: 0 18px 45px rgba(26, 7, 49, 0.25), 0 0 0 1px hsla(var(--border) / 0.45);
+  box-shadow: 0 18px 45px hsla(var(--primary) / 0.25), 0 0 0 1px hsla(var(--border) / 0.45);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -208,7 +210,7 @@ body[data-cc-settings-open="true"] #chitchat-settings-portal {
 
 .chitchat-settings-options button:hover {
   border-color: hsl(var(--primary));
-  box-shadow: 0 12px 30px rgba(55, 0, 128, 0.2);
+  box-shadow: 0 12px 30px hsla(var(--primary) / 0.2);
 }
 
 .chitchat-settings-options button.is-active {
@@ -216,7 +218,7 @@ body[data-cc-settings-open="true"] #chitchat-settings-portal {
   background: hsla(var(--primary) / 0.12);
   color: hsl(var(--primary));
   transform: translateY(-1px);
-  box-shadow: 0 16px 32px rgba(68, 0, 153, 0.22);
+  box-shadow: 0 16px 32px hsla(var(--primary) / 0.22);
 }
 
 .chitchat-settings-body {
@@ -339,7 +341,7 @@ body[data-cc-settings-open="true"] #chitchat-settings-portal {
 
 .chitchat-toggle:hover {
   border-color: hsl(var(--primary));
-  box-shadow: 0 12px 24px rgba(68, 0, 153, 0.12);
+  box-shadow: 0 12px 24px hsla(var(--primary) / 0.12);
 }
 
 .chitchat-toggle input {
@@ -365,7 +367,7 @@ body[data-cc-settings-open="true"] #chitchat-settings-portal {
   border-radius: 50%;
   background: hsl(var(--background));
   transition: transform 0.18s ease, background 0.18s ease;
-  box-shadow: 0 4px 10px rgba(16, 10, 39, 0.25);
+  box-shadow: 0 4px 10px hsla(var(--primary) / 0.25);
 }
 
 .chitchat-toggle input:checked + .chitchat-toggle-slider {
@@ -398,72 +400,83 @@ body[data-cc-settings-open="true"] #chitchat-settings-portal {
 }
 
 body[data-cc-theme="soft"] {
-  --gradient: #a46edb;
-  --background: 275 55% 97%;
-  --foreground: 270 25% 22%;
-  --panel: 275 45% 95%;
-  --panel-foreground: 270 25% 24%;
-  --card: 275 60% 98%;
-  --card-foreground: 270 26% 26%;
-  --popover: 275 60% 98%;
-  --popover-foreground: 270 28% 28%;
-  --primary: 275 80% 60%;
-  --primary-foreground: 275 100% 96%;
-  --secondary: 285 45% 90%;
-  --secondary-foreground: 280 40% 24%;
-  --accent: 305 60% 92%;
-  --accent-foreground: 300 45% 20%;
-  --muted: 275 30% 92%;
-  --muted-foreground: 270 20% 36%;
-  --field: 275 32% 94%;
-  --field-foreground: 270 24% 28%;
-  --action: 275 30% 94%;
-  --action-foreground: 270 22% 28%;
+  --hue: 150;
+  --gradient: #79e2b8;
+  --brightness: 150 12% 4%;
+  --placeholder: 150 50% 93%;
+  --placeholder-foreground: 150 32% 22%;
+  --overlay: 150 60% 18%;
+  --background: 150 55% 97%;
+  --foreground: 150 25% 22%;
+  --panel: 150 45% 95%;
+  --panel-foreground: 150 25% 24%;
+  --card: 150 60% 98%;
+  --card-foreground: 150 26% 26%;
+  --popover: 150 60% 98%;
+  --popover-foreground: 150 28% 28%;
+  --primary: 150 80% 60%;
+  --primary-foreground: 150 100% 96%;
+  --secondary: 155 45% 90%;
+  --secondary-foreground: 155 40% 24%;
+  --accent: 160 60% 92%;
+  --accent-foreground: 160 45% 20%;
+  --muted: 150 30% 92%;
+  --muted-foreground: 150 20% 36%;
+  --field: 150 32% 94%;
+  --field-foreground: 150 24% 28%;
+  --action: 150 30% 94%;
+  --action-foreground: 150 22% 28%;
   --destructive: 330 85% 62%;
   --destructive-foreground: 0 0% 100%;
   --warning: 48 100% 65%;
   --warning-foreground: 48 100% 18%;
   --success: 150 55% 50%;
   --success-foreground: 0 0% 100%;
-  --border: 275 22% 82%;
-  --input: 275 25% 86%;
-  --ring: 275 80% 60%;
+  --border: 150 22% 82%;
+  --input: 150 25% 86%;
+  --ring: 150 80% 60%;
 }
 
 body.dark[data-cc-theme="soft"] {
-  --background: 267 45% 16%;
-  --foreground: 270 60% 88%;
-  --panel: 267 42% 20%;
-  --panel-foreground: 270 65% 92%;
-  --card: 267 42% 22%;
-  --card-foreground: 270 68% 94%;
-  --popover: 267 45% 24%;
-  --popover-foreground: 270 70% 95%;
-  --primary: 275 75% 68%;
-  --primary-foreground: 275 100% 96%;
-  --secondary: 285 45% 46%;
-  --secondary-foreground: 285 78% 92%;
-  --accent: 300 50% 44%;
-  --accent-foreground: 300 100% 94%;
-  --muted: 270 35% 28%;
-  --muted-foreground: 270 35% 74%;
-  --field: 270 35% 26%;
-  --field-foreground: 270 40% 85%;
-  --action: 270 35% 24%;
-  --action-foreground: 270 45% 88%;
+  --hue: 150;
+  --brightness: 150 100% 98%;
+  --placeholder: 150 64% 20%;
+  --placeholder-foreground: 150 70% 90%;
+  --overlay: 150 64% 10%;
+  --background: 150 45% 16%;
+  --foreground: 150 60% 88%;
+  --panel: 150 42% 20%;
+  --panel-foreground: 150 65% 92%;
+  --card: 150 42% 22%;
+  --card-foreground: 150 68% 94%;
+  --popover: 150 45% 24%;
+  --popover-foreground: 150 70% 95%;
+  --primary: 150 75% 68%;
+  --primary-foreground: 150 100% 96%;
+  --secondary: 155 45% 46%;
+  --secondary-foreground: 155 78% 92%;
+  --accent: 160 50% 44%;
+  --accent-foreground: 160 100% 94%;
+  --muted: 150 35% 28%;
+  --muted-foreground: 150 35% 74%;
+  --field: 150 35% 26%;
+  --field-foreground: 150 40% 85%;
+  --action: 150 35% 24%;
+  --action-foreground: 150 45% 88%;
   --destructive: 330 82% 58%;
   --destructive-foreground: 330 95% 95%;
   --warning: 48 92% 56%;
   --warning-foreground: 48 100% 92%;
   --success: 150 60% 48%;
   --success-foreground: 150 100% 92%;
-  --border: 270 30% 32%;
-  --input: 270 32% 36%;
-  --ring: 275 78% 68%;
+  --border: 150 30% 32%;
+  --input: 150 32% 36%;
+  --ring: 150 78% 68%;
 }
 
 
 body:not(.dark)[data-cc-preset="blue"] {
+  --hue: 215;
   --gradient: 215 88% 62%;
   --brightness: 215 12% 4%;
   --placeholder: 215 50% 93%;
@@ -495,6 +508,7 @@ body:not(.dark)[data-cc-preset="blue"] {
 }
 
 body.dark[data-cc-preset="blue"] {
+  --hue: 215;
   --gradient: 215 88% 56%;
   --brightness: 215 100% 98%;
   --placeholder: 215 64% 20%;
@@ -526,7 +540,12 @@ body.dark[data-cc-preset="blue"] {
 }
 
 body:not(.dark)[data-cc-preset="orange"] {
+  --hue: 30;
   --gradient: 30 92% 56%;
+  --brightness: 30 12% 4%;
+  --placeholder: 30 50% 93%;
+  --placeholder-foreground: 30 32% 22%;
+  --overlay: 30 60% 18%;
   --background: 30 70% 97%;
   --foreground: 28 45% 18%;
   --panel: 28 55% 94%;
@@ -553,7 +572,12 @@ body:not(.dark)[data-cc-preset="orange"] {
 }
 
 body.dark[data-cc-preset="orange"] {
+  --hue: 30;
   --gradient: 30 92% 56%;
+  --brightness: 30 100% 98%;
+  --placeholder: 30 64% 20%;
+  --placeholder-foreground: 30 70% 90%;
+  --overlay: 30 64% 10%;
   --background: 28 50% 12%;
   --foreground: 28 70% 90%;
   --panel: 28 48% 16%;
@@ -580,7 +604,12 @@ body.dark[data-cc-preset="orange"] {
 }
 
 body:not(.dark)[data-cc-preset="red"] {
+  --hue: 350;
   --gradient: 350 80% 56%;
+  --brightness: 350 12% 4%;
+  --placeholder: 350 50% 93%;
+  --placeholder-foreground: 350 32% 22%;
+  --overlay: 350 60% 18%;
   --background: 0 65% 97%;
   --foreground: 0 40% 16%;
   --panel: 0 50% 94%;
@@ -607,7 +636,12 @@ body:not(.dark)[data-cc-preset="red"] {
 }
 
 body.dark[data-cc-preset="red"] {
+  --hue: 350;
   --gradient: 350 80% 56%;
+  --brightness: 350 100% 98%;
+  --placeholder: 350 64% 20%;
+  --placeholder-foreground: 350 70% 90%;
+  --overlay: 350 64% 10%;
   --background: 350 36% 12%;
   --foreground: 350 70% 90%;
   --panel: 350 32% 16%;
@@ -634,7 +668,12 @@ body.dark[data-cc-preset="red"] {
 }
 
 body:not(.dark)[data-cc-preset="pink"] {
+  --hue: 335;
   --gradient: 335 86% 62%;
+  --brightness: 335 12% 4%;
+  --placeholder: 335 50% 93%;
+  --placeholder-foreground: 335 32% 22%;
+  --overlay: 335 60% 18%;
   --background: 330 68% 97%;
   --foreground: 332 42% 16%;
   --panel: 330 50% 94%;
@@ -661,7 +700,12 @@ body:not(.dark)[data-cc-preset="pink"] {
 }
 
 body.dark[data-cc-preset="pink"] {
+  --hue: 335;
   --gradient: 335 86% 62%;
+  --brightness: 335 100% 98%;
+  --placeholder: 335 64% 20%;
+  --placeholder-foreground: 335 70% 90%;
+  --overlay: 335 64% 10%;
   --background: 328 40% 12%;
   --foreground: 330 70% 90%;
   --panel: 328 35% 16%;
@@ -688,7 +732,12 @@ body.dark[data-cc-preset="pink"] {
 }
 
 body:not(.dark)[data-cc-preset="green"] {
+  --hue: 160;
   --gradient: 160 64% 48%;
+  --brightness: 160 12% 4%;
+  --placeholder: 160 50% 93%;
+  --placeholder-foreground: 160 32% 22%;
+  --overlay: 160 60% 18%;
   --background: 160 55% 96%;
   --foreground: 160 38% 16%;
   --panel: 160 42% 93%;
@@ -715,7 +764,12 @@ body:not(.dark)[data-cc-preset="green"] {
 }
 
 body.dark[data-cc-preset="green"] {
+  --hue: 160;
   --gradient: 160 64% 48%;
+  --brightness: 160 100% 98%;
+  --placeholder: 160 64% 20%;
+  --placeholder-foreground: 160 70% 90%;
+  --overlay: 160 64% 10%;
   --background: 158 32% 12%;
   --foreground: 158 60% 88%;
   --panel: 158 30% 16%;
@@ -743,22 +797,22 @@ body.dark[data-cc-preset="green"] {
 
 
 body[data-cc-surface="frosted"] {
-  --panel: 270 45% 96% / 0.82;
-  --panel-foreground: 270 30% 20%;
-  --card: 270 50% 98% / 0.78;
-  --card-foreground: 270 28% 24%;
-  --popover: 270 60% 99% / 0.9;
-  --popover-foreground: 270 30% 26%;
+  --panel: var(--hue) 45% 96% / 0.82;
+  --panel-foreground: var(--hue) 30% 20%;
+  --card: var(--hue) 50% 98% / 0.78;
+  --card-foreground: var(--hue) 28% 24%;
+  --popover: var(--hue) 60% 99% / 0.9;
+  --popover-foreground: var(--hue) 30% 26%;
   backdrop-filter: blur(10px);
 }
 
 body.dark[data-cc-surface="frosted"] {
-  --panel: 265 40% 18% / 0.78;
-  --panel-foreground: 272 55% 88%;
-  --card: 265 40% 20% / 0.74;
-  --card-foreground: 272 58% 90%;
-  --popover: 265 38% 22% / 0.78;
-  --popover-foreground: 272 65% 92%;
+  --panel: var(--hue) 40% 18% / 0.78;
+  --panel-foreground: var(--hue) 55% 88%;
+  --card: var(--hue) 40% 20% / 0.74;
+  --card-foreground: var(--hue) 58% 90%;
+  --popover: var(--hue) 38% 22% / 0.78;
+  --popover-foreground: var(--hue) 65% 92%;
   backdrop-filter: blur(12px);
 }
 
