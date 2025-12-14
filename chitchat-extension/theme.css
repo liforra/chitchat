@@ -918,3 +918,53 @@ body[data-cc-density="compact"] #chitchat-settings-panel {
   background-color: hsla(var(--primary) / 0.8);
 }
 
+
+
+body[data-cc-preset="amoled"],
+body.dark[data-cc-preset="amoled"] {
+  --hue: 270;
+  --gradient: #9d4edd;
+  --brightness: 0 0% 100%;
+  --brightness-foreground: 0 0% 0%;
+
+  --placeholder: 0 0% 20%;
+  --placeholder-foreground: 0 0% 60%;
+
+  --overlay: 0 0% 0%;
+  --background: 0 0% 0%;
+  --foreground: 0 0% 88%;
+
+  --panel: 0 0% 3%;
+  --panel-foreground: 0 0% 88%;
+  --card: 0 0% 4%;
+  --card-foreground: 0 0% 90%;
+  --popover: 0 0% 5%;
+  --popover-foreground: 0 0% 92%;
+
+  --primary: 265 85% 65%;
+  --primary-foreground: 265 100% 96%;
+  --secondary: 282 45% 42%;
+  --secondary-foreground: 282 85% 92%;
+  --accent: 295 55% 38%;
+  --accent-foreground: 295 100% 92%;
+
+  --muted: 0 0% 8%;
+  --muted-foreground: 0 0% 72%;
+  --field: 0 0% 5%;
+  --field-foreground: 0 0% 86%;
+  --action: 0 0% 4%;
+  --action-foreground: 0 0% 88%;
+
+  --destructive: 330 80% 52%;
+  --destructive-foreground: 330 95% 95%;
+
+  --warning: 45 95% 48%;
+  --warning-foreground: 45 100% 90%;
+  --success: 150 65% 42%;
+  --success-foreground: 150 100% 90%;
+
+  --border: 0 0% 8%;
+  --input: 0 0% 10%;
+  --ring: 265 80% 65%;
+}
+

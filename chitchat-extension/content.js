@@ -26,7 +26,7 @@ const PRESET_STORAGE_KEY = "chitchat-extension-theme-preset";
 const CUSTOM_COLORS_STORAGE_KEY = "chitchat-extension-custom-colors";
 const PRESET_DEFAULT = "purple";
 const PRESET_CUSTOM = "custom";
-const PRESET_OPTIONS = ["purple", "blue", "orange", "red", "pink", "green", PRESET_CUSTOM, "none"];
+const PRESET_OPTIONS = ["purple", "blue", "orange", "red", "pink", "green", "amoled", PRESET_CUSTOM, "none"];
 const PRESET_TOKEN_KEYS = [
   "brightness",
   "brightness-foreground",
