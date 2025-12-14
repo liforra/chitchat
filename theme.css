@@ -1,0 +1,1012 @@
+/*
+  ChitChat Dark Theme - Purple Edition v2
+*/
+
+:root {
+  --hue: 270;
+  --gradient: #9d4edd;
+  --radius: 0.5rem;
+
+  --brightness: 0 0% 0%;
+  --brightness-foreground: 0 0% 100%;
+
+  --placeholder: 270 25% 82%;
+  --placeholder-foreground: 270 25% 35%;
+
+  --overlay: 270 65% 18%;
+  --background: 270 60% 97%;
+  --foreground: 270 35% 20%;
+
+  --panel: 270 45% 94%;
+  --panel-foreground: 270 35% 22%;
+  --card: 270 52% 96%;
+  --card-foreground: 270 32% 24%;
+  --popover: 270 50% 98%;
+  --popover-foreground: 268 28% 28%;
+
+  --primary: 265 85% 55%;
+  --primary-foreground: 265 100% 96%;
+  --secondary: 280 45% 88%;
+  --secondary-foreground: 275 45% 22%;
+  --accent: 300 65% 90%;
+  --accent-foreground: 300 60% 18%;
+
+  --muted: 270 30% 90%;
+  --muted-foreground: 268 25% 35%;
+  --field: 270 35% 94%;
+  --field-foreground: 270 35% 24%;
+  --action: 270 32% 92%;
+  --action-foreground: 270 32% 24%;
+
+  --destructive: 330 85% 54%;
+  --destructive-foreground: 325 100% 96%;
+
+  --warning: 45 100% 60%;
+  --warning-foreground: 45 100% 14%;
+  --success: 150 60% 45%;
+  --success-foreground: 0 0% 100%;
+
+  --border: 270 25% 80%;
+  --input: 270 30% 85%;
+  --ring: 265 85% 55%;
+}
+
+.dark {
+  --hue: 270;
+  --gradient: #9d4edd;
+  --brightness: 255 100% 100%;
+
+  --placeholder: 268 30% 45%;
+  --placeholder-foreground: 270 35% 80%;
+
+  --overlay: 270 65% 12%;
+  --background: 266 42% 12%;
+  --foreground: 270 60% 88%;
+
+  --panel: 266 42% 16%;
+  --panel-foreground: 270 60% 88%;
+  --card: 266 45% 18%;
+  --card-foreground: 270 58% 90%;
+  --popover: 266 45% 20%;
+  --popover-foreground: 270 65% 92%;
+
+  --primary: 265 85% 65%;
+  --primary-foreground: 265 100% 96%;
+  --secondary: 282 45% 42%;
+  --secondary-foreground: 282 85% 92%;
+  --accent: 295 55% 38%;
+  --accent-foreground: 295 100% 92%;
+
+  --muted: 268 30% 26%;
+  --muted-foreground: 268 35% 72%;
+  --field: 268 35% 24%;
+  --field-foreground: 268 45% 86%;
+  --action: 268 32% 22%;
+  --action-foreground: 268 55% 88%;
+
+  --destructive: 330 80% 52%;
+  --destructive-foreground: 330 95% 95%;
+
+  --warning: 45 95% 48%;
+  --warning-foreground: 45 100% 90%;
+  --success: 150 65% 42%;
+  --success-foreground: 150 100% 90%;
+
+  --border: 270 28% 28%;
+  --input: 270 30% 35%;
+  --ring: 265 80% 65%;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+body[data-cc-settings-open="true"] #chitchat-settings-portal {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#chitchat-settings-portal {
+  position: fixed;
+  inset: 0;
+  background: hsla(var(--overlay) / 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  z-index: 9999;
+}
+
+#chitchat-settings-panel {
+  width: min(440px, calc(100% - 2.5rem));
+  max-height: min(640px, calc(100vh - 3.5rem));
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  background: hsl(var(--panel));
+  color: hsl(var(--panel-foreground));
+  box-shadow: 0 18px 45px hsla(var(--primary) / 0.25), 0 0 0 1px hsla(var(--border) / 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+.chitchat-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding-bottom: 0.5rem;
+  background: linear-gradient(
+    180deg,
+    hsl(var(--panel)) 0%,
+    hsla(var(--panel) / 0.92) 80%,
+    hsla(var(--panel) / 0) 100%
+  );
+}
+
+.chitchat-settings-header h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.chitchat-settings-close {
+  border: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: 1.75rem;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.chitchat-settings-close:hover {
+  background: hsla(var(--muted) / 0.55);
+  color: hsl(var(--foreground));
+}
+
+.chitchat-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chitchat-settings-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chitchat-settings-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.chitchat-settings-options button {
+  border: 1px solid hsla(var(--border) / 0.65);
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: border 0.15s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  text-align: left;
+}
+
+.chitchat-settings-options button:hover {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 12px 30px hsla(var(--primary) / 0.2);
+}
+
+.chitchat-settings-options button.is-active {
+  border-color: hsl(var(--primary));
+  background: hsla(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+  transform: translateY(-1px);
+  box-shadow: 0 16px 32px hsla(var(--primary) / 0.22);
+}
+
+.chitchat-settings-body {
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  padding-bottom: 0.5rem;
+}
+
+@media (min-width: 720px) {
+  .chitchat-settings-body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chitchat-settings-category {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: hsla(var(--card) / 0.6);
+  border: 1px solid hsla(var(--border) / 0.4);
+  box-shadow: inset 0 1px 0 hsla(var(--background) / 0.4);
+}
+
+.chitchat-settings-subtitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.chitchat-settings-options--wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.chitchat-settings-options--wrap button {
+  flex: 1 1 120px;
+  min-width: 110px;
+}
+
+.chitchat-settings-section--custom {
+  border: 1px dashed hsla(var(--border) / 0.6);
+  border-radius: calc(var(--radius) * 1.2);
+  padding: 1rem;
+  background: hsla(var(--background) / 0.7);
+  transition: opacity 0.18s ease, filter 0.18s ease;
+}
+
+[data-custom-section][data-enabled="false"] {
+  opacity: 0.55;
+  filter: grayscale(0.2);
+  pointer-events: none;
+}
+
+.chitchat-color-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.chitchat-color-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.chitchat-color-field span {
+  font-weight: 500;
+}
+
+.chitchat-color-field input[type="color"] {
+  width: 52px;
+  height: 32px;
+  border: 1px solid hsla(var(--border) / 0.7);
+  border-radius: calc(var(--radius) / 1.2);
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 hsla(var(--background) / 0.35);
+}
+
+.chitchat-color-field input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: inherit;
+}
+
+.chitchat-color-field input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: inherit;
+}
+
+.chitchat-settings-hint {
+  font-size: 0.8rem;
+  color: hsl(var(--muted-foreground));
+  margin-top: -0.2rem;
+}
+
+.chitchat-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid hsla(var(--border) / 0.5);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.75rem;
+  background: hsla(var(--card) / 0.85);
+  color: hsl(var(--card-foreground));
+  cursor: pointer;
+  transition: border 0.18s ease, box-shadow 0.18s ease;
+}
+
+.chitchat-toggle:hover {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 12px 24px hsla(var(--primary) / 0.12);
+}
+
+.chitchat-toggle input {
+  display: none;
+}
+
+.chitchat-toggle-slider {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: hsla(var(--muted) / 0.7);
+  transition: background 0.18s ease;
+}
+
+.chitchat-toggle-slider::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: hsl(var(--background));
+  transition: transform 0.18s ease, background 0.18s ease;
+  box-shadow: 0 4px 10px hsla(var(--primary) / 0.25);
+}
+
+.chitchat-toggle input:checked + .chitchat-toggle-slider {
+  background: hsla(var(--primary) / 0.8);
+}
+
+.chitchat-toggle input:checked + .chitchat-toggle-slider::after {
+  transform: translateX(20px);
+  background: hsl(var(--primary-foreground));
+}
+
+.chitchat-toggle-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.chitchat-settings-footnote {
+  font-size: 0.8rem;
+  color: hsl(var(--muted-foreground));
+  text-align: right;
+}
+
+.chitchat-settings-trigger {
+  position: relative;
+}
+
+.chitchat-settings-trigger svg {
+  width: 20px;
+  height: 20px;
+}
+
+body[data-cc-theme="soft"] {
+  --hue: 150;
+  --gradient: #79e2b8;
+  --brightness: 150 12% 4%;
+  --placeholder: 150 50% 93%;
+  --placeholder-foreground: 150 32% 22%;
+  --overlay: 150 60% 18%;
+  --background: 150 55% 97%;
+  --foreground: 150 25% 22%;
+  --panel: 150 45% 95%;
+  --panel-foreground: 150 25% 24%;
+  --card: 150 60% 98%;
+  --card-foreground: 150 26% 26%;
+  --popover: 150 60% 98%;
+  --popover-foreground: 150 28% 28%;
+  --primary: 150 80% 60%;
+  --primary-foreground: 150 100% 96%;
+  --secondary: 155 45% 90%;
+  --secondary-foreground: 155 40% 24%;
+  --accent: 160 60% 92%;
+  --accent-foreground: 160 45% 20%;
+  --muted: 150 30% 92%;
+  --muted-foreground: 150 20% 36%;
+  --field: 150 32% 94%;
+  --field-foreground: 150 24% 28%;
+  --action: 150 30% 94%;
+  --action-foreground: 150 22% 28%;
+  --destructive: 330 85% 62%;
+  --destructive-foreground: 0 0% 100%;
+  --warning: 48 100% 65%;
+  --warning-foreground: 48 100% 18%;
+  --success: 150 55% 50%;
+  --success-foreground: 0 0% 100%;
+  --border: 150 22% 82%;
+  --input: 150 25% 86%;
+  --ring: 150 80% 60%;
+}
+
+body.dark[data-cc-theme="soft"] {
+  --hue: 150;
+  --brightness: 150 100% 98%;
+  --placeholder: 150 64% 20%;
+  --placeholder-foreground: 150 70% 90%;
+  --overlay: 150 64% 10%;
+  --background: 150 45% 16%;
+  --foreground: 150 60% 88%;
+  --panel: 150 42% 20%;
+  --panel-foreground: 150 65% 92%;
+  --card: 150 42% 22%;
+  --card-foreground: 150 68% 94%;
+  --popover: 150 45% 24%;
+  --popover-foreground: 150 70% 95%;
+  --primary: 150 75% 68%;
+  --primary-foreground: 150 100% 96%;
+  --secondary: 155 45% 46%;
+  --secondary-foreground: 155 78% 92%;
+  --accent: 160 50% 44%;
+  --accent-foreground: 160 100% 94%;
+  --muted: 150 35% 28%;
+  --muted-foreground: 150 35% 74%;
+  --field: 150 35% 26%;
+  --field-foreground: 150 40% 85%;
+  --action: 150 35% 24%;
+  --action-foreground: 150 45% 88%;
+  --destructive: 330 82% 58%;
+  --destructive-foreground: 330 95% 95%;
+  --warning: 48 92% 56%;
+  --warning-foreground: 48 100% 92%;
+  --success: 150 60% 48%;
+  --success-foreground: 150 100% 92%;
+  --border: 150 30% 32%;
+  --input: 150 32% 36%;
+  --ring: 150 78% 68%;
+}
+
+
+body:not(.dark)[data-cc-preset="blue"] {
+  --hue: 215;
+  --gradient: 215 88% 62%;
+  --brightness: 215 12% 4%;
+  --placeholder: 215 50% 93%;
+  --placeholder-foreground: 215 32% 22%;
+  --overlay: 215 60% 18%;
+  --background: 215 58% 95%;
+  --foreground: 215 30% 16%;
+  --panel: 215 52% 92%;
+  --panel-foreground: 215 30% 20%;
+  --card: 215 54% 94%;
+  --card-foreground: 215 28% 22%;
+  --popover: 215 56% 96%;
+  --popover-foreground: 215 32% 22%;
+  --primary: 214 88% 54%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 45% 88%;
+  --secondary-foreground: 210 28% 22%;
+  --accent: 204 78% 60%;
+  --accent-foreground: 204 84% 18%;
+  --muted: 212 24% 90%;
+  --muted-foreground: 212 20% 34%;
+  --field: 212 26% 94%;
+  --field-foreground: 212 24% 24%;
+  --action: 212 22% 92%;
+  --action-foreground: 212 20% 26%;
+  --border: 213 36% 74%;
+  --input: 213 34% 78%;
+  --ring: 214 90% 56%;
+}
+
+body.dark[data-cc-preset="blue"] {
+  --hue: 215;
+  --gradient: 215 88% 56%;
+  --brightness: 215 100% 98%;
+  --placeholder: 215 64% 20%;
+  --placeholder-foreground: 215 70% 90%;
+  --overlay: 215 64% 10%;
+  --background: 215 44% 11%;
+  --foreground: 215 64% 88%;
+  --panel: 215 40% 14%;
+  --panel-foreground: 215 70% 90%;
+  --card: 215 42% 16%;
+  --card-foreground: 215 72% 92%;
+  --popover: 215 38% 18%;
+  --popover-foreground: 215 74% 94%;
+  --primary: 214 86% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 208 58% 42%;
+  --secondary-foreground: 208 90% 90%;
+  --accent: 202 65% 48%;
+  --accent-foreground: 202 100% 94%;
+  --muted: 214 30% 26%;
+  --muted-foreground: 214 38% 74%;
+  --field: 214 30% 24%;
+  --field-foreground: 214 42% 85%;
+  --action: 214 32% 22%;
+  --action-foreground: 214 48% 88%;
+  --border: 214 28% 30%;
+  --input: 214 30% 34%;
+  --ring: 214 88% 62%;
+}
+
+body:not(.dark)[data-cc-preset="orange"] {
+  --hue: 30;
+  --gradient: 30 92% 56%;
+  --brightness: 30 12% 4%;
+  --placeholder: 30 50% 93%;
+  --placeholder-foreground: 30 32% 22%;
+  --overlay: 30 60% 18%;
+  --background: 30 70% 97%;
+  --foreground: 28 45% 18%;
+  --panel: 28 55% 94%;
+  --panel-foreground: 28 42% 20%;
+  --card: 28 58% 96%;
+  --card-foreground: 28 40% 22%;
+  --popover: 28 60% 98%;
+  --popover-foreground: 28 42% 20%;
+  --primary: 32 94% 55%;
+  --primary-foreground: 28 100% 10%;
+  --secondary: 28 95% 88%;
+  --secondary-foreground: 26 80% 22%;
+  --accent: 27 96% 61%;
+  --accent-foreground: 24 100% 16%;
+  --muted: 28 30% 90%;
+  --muted-foreground: 25 24% 34%;
+  --field: 28 32% 94%;
+  --field-foreground: 28 30% 24%;
+  --action: 28 30% 92%;
+  --action-foreground: 28 26% 26%;
+  --border: 25 65% 74%;
+  --input: 25 60% 80%;
+  --ring: 30 92% 56%;
+}
+
+body.dark[data-cc-preset="orange"] {
+  --hue: 30;
+  --gradient: 30 92% 56%;
+  --brightness: 30 100% 98%;
+  --placeholder: 30 64% 20%;
+  --placeholder-foreground: 30 70% 90%;
+  --overlay: 30 64% 10%;
+  --background: 28 50% 12%;
+  --foreground: 28 70% 90%;
+  --panel: 28 48% 16%;
+  --panel-foreground: 28 75% 92%;
+  --card: 28 45% 18%;
+  --card-foreground: 28 78% 94%;
+  --popover: 28 40% 20%;
+  --popover-foreground: 28 80% 95%;
+  --primary: 32 92% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 28 75% 42%;
+  --secondary-foreground: 28 88% 92%;
+  --accent: 27 80% 58%;
+  --accent-foreground: 25 100% 94%;
+  --muted: 28 32% 26%;
+  --muted-foreground: 28 35% 72%;
+  --field: 28 30% 24%;
+  --field-foreground: 28 38% 84%;
+  --action: 28 32% 22%;
+  --action-foreground: 28 45% 88%;
+  --border: 26 40% 32%;
+  --input: 26 38% 36%;
+  --ring: 32 90% 62%;
+}
+
+body:not(.dark)[data-cc-preset="red"] {
+  --hue: 350;
+  --gradient: 350 80% 56%;
+  --brightness: 350 12% 4%;
+  --placeholder: 350 50% 93%;
+  --placeholder-foreground: 350 32% 22%;
+  --overlay: 350 60% 18%;
+  --background: 0 65% 97%;
+  --foreground: 0 40% 16%;
+  --panel: 0 50% 94%;
+  --panel-foreground: 0 36% 20%;
+  --card: 0 52% 96%;
+  --card-foreground: 0 34% 22%;
+  --popover: 0 55% 98%;
+  --popover-foreground: 0 40% 20%;
+  --primary: 354 81% 55%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 2 88% 90%;
+  --secondary-foreground: 0 70% 20%;
+  --accent: 2 85% 63%;
+  --accent-foreground: 0 100% 12%;
+  --muted: 0 30% 90%;
+  --muted-foreground: 0 24% 32%;
+  --field: 0 32% 94%;
+  --field-foreground: 0 30% 24%;
+  --action: 0 28% 92%;
+  --action-foreground: 0 26% 26%;
+  --border: 355 60% 74%;
+  --input: 355 52% 80%;
+  --ring: 350 80% 56%;
+}
+
+body.dark[data-cc-preset="red"] {
+  --hue: 350;
+  --gradient: 350 80% 56%;
+  --brightness: 350 100% 98%;
+  --placeholder: 350 64% 20%;
+  --placeholder-foreground: 350 70% 90%;
+  --overlay: 350 64% 10%;
+  --background: 350 36% 12%;
+  --foreground: 350 70% 90%;
+  --panel: 350 32% 16%;
+  --panel-foreground: 350 80% 92%;
+  --card: 350 34% 18%;
+  --card-foreground: 350 82% 94%;
+  --popover: 350 30% 20%;
+  --popover-foreground: 350 85% 95%;
+  --primary: 354 78% 58%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 352 65% 40%;
+  --secondary-foreground: 352 88% 92%;
+  --accent: 352 70% 54%;
+  --accent-foreground: 352 100% 94%;
+  --muted: 350 30% 26%;
+  --muted-foreground: 350 36% 72%;
+  --field: 350 32% 24%;
+  --field-foreground: 350 38% 84%;
+  --action: 350 30% 22%;
+  --action-foreground: 350 45% 88%;
+  --border: 350 35% 32%;
+  --input: 350 32% 36%;
+  --ring: 354 80% 60%;
+}
+
+body:not(.dark)[data-cc-preset="pink"] {
+  --hue: 305;
+  --gradient: 305 86% 62%;
+  --brightness: 305 12% 4%;
+  --placeholder: 305 50% 93%;
+  --placeholder-foreground: 305 32% 22%;
+  --overlay: 305 60% 18%;
+  --background: 305 68% 97%;
+  --foreground: 305 42% 16%;
+  --panel: 305 50% 94%;
+  --panel-foreground: 305 36% 20%;
+  --card: 305 54% 96%;
+  --card-foreground: 305 34% 22%;
+  --popover: 305 56% 98%;
+  --popover-foreground: 305 38% 20%;
+  --primary: 305 82% 62%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 305 90% 92%;
+  --secondary-foreground: 305 60% 20%;
+  --accent: 300 88% 71%;
+  --accent-foreground: 295 100% 18%;
+  --muted: 305 30% 90%;
+  --muted-foreground: 300 24% 32%;
+  --field: 305 32% 94%;
+  --field-foreground: 300 30% 24%;
+  --action: 305 30% 92%;
+  --action-foreground: 300 26% 26%;
+  --border: 300 64% 78%;
+  --input: 300 58% 82%;
+  --ring: 305 86% 62%;
+}
+
+body.dark[data-cc-preset="pink"] {
+  --hue: 305;
+  --gradient: 305 86% 62%;
+  --brightness: 305 100% 98%;
+  --placeholder: 305 64% 20%;
+  --placeholder-foreground: 305 70% 90%;
+  --overlay: 305 64% 10%;
+  --background: 305 40% 12%;
+  --foreground: 305 70% 90%;
+  --panel: 305 35% 16%;
+  --panel-foreground: 305 78% 92%;
+  --card: 305 36% 18%;
+  --card-foreground: 305 80% 94%;
+  --popover: 305 32% 20%;
+  --popover-foreground: 305 85% 95%;
+  --primary: 305 78% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 305 62% 40%;
+  --secondary-foreground: 305 88% 92%;
+  --accent: 300 65% 56%;
+  --accent-foreground: 300 100% 94%;
+  --muted: 305 32% 26%;
+  --muted-foreground: 305 36% 72%;
+  --field: 305 30% 24%;
+  --field-foreground: 305 38% 84%;
+  --action: 305 30% 22%;
+  --action-foreground: 305 45% 88%;
+  --border: 305 35% 32%;
+  --input: 305 32% 36%;
+  --ring: 305 82% 62%;
+}
+
+body:not(.dark)[data-cc-preset="green"] {
+  --hue: 160;
+  --gradient: 160 64% 48%;
+  --brightness: 160 12% 4%;
+  --placeholder: 160 50% 93%;
+  --placeholder-foreground: 160 32% 22%;
+  --overlay: 160 60% 18%;
+  --background: 160 55% 96%;
+  --foreground: 160 38% 16%;
+  --panel: 160 42% 93%;
+  --panel-foreground: 160 35% 20%;
+  --card: 160 44% 95%;
+  --card-foreground: 160 32% 22%;
+  --popover: 160 46% 97%;
+  --popover-foreground: 160 35% 20%;
+  --primary: 163 65% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 150 55% 88%;
+  --secondary-foreground: 150 40% 18%;
+  --accent: 150 60% 52%;
+  --accent-foreground: 150 80% 12%;
+  --muted: 155 28% 88%;
+  --muted-foreground: 155 24% 30%;
+  --field: 155 30% 92%;
+  --field-foreground: 155 28% 22%;
+  --action: 155 28% 90%;
+  --action-foreground: 155 25% 24%;
+  --border: 155 34% 70%;
+  --input: 155 32% 76%;
+  --ring: 160 64% 48%;
+}
+
+body.dark[data-cc-preset="green"] {
+  --hue: 160;
+  --gradient: 160 64% 48%;
+  --brightness: 160 100% 98%;
+  --placeholder: 160 64% 20%;
+  --placeholder-foreground: 160 70% 90%;
+  --overlay: 160 64% 10%;
+  --background: 158 32% 12%;
+  --foreground: 158 60% 88%;
+  --panel: 158 30% 16%;
+  --panel-foreground: 158 70% 92%;
+  --card: 158 32% 18%;
+  --card-foreground: 158 72% 94%;
+  --popover: 158 28% 20%;
+  --popover-foreground: 158 75% 95%;
+  --primary: 163 60% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 150 58% 38%;
+  --secondary-foreground: 150 90% 90%;
+  --accent: 150 55% 48%;
+  --accent-foreground: 150 100% 92%;
+  --muted: 156 28% 26%;
+  --muted-foreground: 156 34% 72%;
+  --field: 156 28% 24%;
+  --field-foreground: 156 36% 84%;
+  --action: 156 30% 22%;
+  --action-foreground: 156 45% 88%;
+  --border: 156 32% 32%;
+  --input: 156 30% 36%;
+  --ring: 163 58% 52%;
+}
+
+
+body[data-cc-surface="frosted"] {
+  --panel: var(--hue) 45% 96% / 0.82;
+  --panel-foreground: var(--hue) 30% 20%;
+  --card: var(--hue) 50% 98% / 0.78;
+  --card-foreground: var(--hue) 28% 24%;
+  --popover: var(--hue) 60% 99% / 0.9;
+  --popover-foreground: var(--hue) 30% 26%;
+  backdrop-filter: blur(10px);
+}
+
+body.dark[data-cc-surface="frosted"] {
+  --panel: var(--hue) 40% 18% / 0.78;
+  --panel-foreground: var(--hue) 55% 88%;
+  --card: var(--hue) 40% 20% / 0.74;
+  --card-foreground: var(--hue) 58% 90%;
+  --popover: var(--hue) 38% 22% / 0.78;
+  --popover-foreground: var(--hue) 65% 92%;
+  backdrop-filter: blur(12px);
+}
+
+body[data-cc-density="compact"] {
+  --radius: 0.35rem;
+}
+
+body[data-cc-density="compact"] .chitchat-settings-body {
+  gap: 1rem;
+}
+
+body[data-cc-density="compact"] .chitchat-settings-options {
+  gap: 0.6rem;
+}
+
+body[data-cc-density="compact"] .chitchat-settings-options button {
+  padding: 0.55rem 0.8rem;
+}
+
+body[data-cc-density="compact"] .chitchat-toggle {
+  padding: 0.45rem 0.65rem;
+}
+
+body[data-cc-density="compact"] .chitchat-settings-category {
+  padding: 0.85rem;
+  gap: 0.75rem;
+}
+
+body[data-cc-density="compact"] .chitchat-settings-section--custom {
+  padding: 0.85rem;
+}
+
+body[data-cc-density="compact"] .chitchat-settings-section {
+  gap: 0.55rem;
+}
+
+body[data-cc-density="compact"] #chitchat-settings-panel {
+  gap: 0.8rem;
+}
+
+.chitchat-settings-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid hsla(var(--border) / 0.5);
+  padding: 0 1.5rem;
+  margin: 0 -1.5rem;
+}
+
+.chitchat-settings-tab {
+  background: none;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  padding: 0.75rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.chitchat-settings-tab:hover {
+  color: hsl(var(--foreground));
+}
+
+.chitchat-settings-tab.is-active {
+  color: hsl(var(--primary));
+}
+
+.chitchat-settings-tab.is-active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: hsl(var(--primary));
+}
+
+.chitchat-settings-tab-panel {
+  display: none;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  padding-bottom: 0.5rem;
+}
+
+.chitchat-settings-tab-panel.is-active {
+  display: grid;
+}
+
+
+.chitchat-settings-apply-button {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background-color 0.15s ease;
+}
+
+.chitchat-settings-apply-button:hover {
+  background-color: hsla(var(--primary) / 0.8);
+}
+
+
+
+body[data-cc-preset="amoled"],
+body.dark[data-cc-preset="amoled"] {
+  --hue: 270;
+  --gradient: #9d4edd;
+  --brightness: 0 0% 100%;
+  --brightness-foreground: 0 0% 0%;
+
+  --placeholder: 0 0% 20%;
+  --placeholder-foreground: 0 0% 60%;
+
+  --overlay: 270 65% 5%;
+  --background: 0 0% 0%;
+  --foreground: 0 0% 88%;
+  --message-foreground: 0 0% 50%;
+
+  --panel: 0 0% 5%;
+  --panel-foreground: 0 0% 88%;
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 90%;
+  --popover: 0 0% 8%;
+  --popover-foreground: 0 0% 92%;
+
+  --primary: 265 85% 65%;
+  --primary-foreground: 265 100% 96%;
+  --secondary: 282 45% 42%;
+  --secondary-foreground: 282 85% 92%;
+  --accent: 295 55% 38%;
+  --accent-foreground: 295 100% 94%;
+
+  --muted: 0 0% 8%;
+  --muted-foreground: 0 0% 72%;
+  --field: 0 0% 5%;
+  --field-foreground: 0 0% 86%;
+  --action: 0 0% 4%;
+  --action-foreground: 0 0% 88%;
+
+  --destructive: 330 80% 52%;
+  --destructive-foreground: 330 95% 95%;
+
+  --warning: 45 95% 48%;
+  --warning-foreground: 45 100% 90%;
+  --success: 150 65% 42%;
+  --success-foreground: 150 100% 90%;
+
+  --border: 270 28% 12%;
+  --input: 270 30% 15%;
+  --ring: 265 80% 65%;
+}
+
+
+.dark .dark\:text-message,
+.dark .dark\:text-message span {
+    color: hsl(var(--message-foreground)) !important;
+}
+
+.add-friend-form {
+  padding: 1rem;
+  border-top: 1px solid hsla(var(--border) / 0.5);
+}
+
+.chitchat-add-friend-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.chitchat-add-friend-input {
+  flex-grow: 1;
+  background-color: hsl(var(--field));
+  color: hsl(var(--field-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.chitchat-add-friend-button {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.chitchat-add-friend-button:hover {
+  background-color: hsla(var(--primary) / 0.8);
+}
