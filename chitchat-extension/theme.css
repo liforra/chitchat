@@ -900,3 +900,21 @@ body[data-cc-density="compact"] #chitchat-settings-panel {
 .chitchat-settings-tab-panel.is-active {
   display: grid;
 }
+
+
+.chitchat-settings-apply-button {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background-color 0.15s ease;
+}
+
+.chitchat-settings-apply-button:hover {
+  background-color: hsla(var(--primary) / 0.8);
+}
+

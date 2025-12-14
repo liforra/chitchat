@@ -250,15 +250,7 @@ function syncCustomSectionState() {
   }
 }
 
-function handleCustomColorInput(key, value) {
-  if (!key || !value) {
-    return;
-  }
-  const colors = getCustomColors();
-  colors[key] = value;
-  setCustomColors(colors);
-  setPreset(PRESET_CUSTOM);
-}
+
 
 function withRetry(fn, interval = 500, limit = 20) {
   let attempts = 0;
@@ -425,6 +417,7 @@ function ensurePortal() {
                   <input type="color" value="${CUSTOM_DEFAULTS.accent}" data-custom-color="accent">
                 </label>
               </div>
+              <button type="button" class="chitchat-settings-apply-button" data-apply-custom-colors>Apply</button>
             </div>
           </div>
         </div>
@@ -509,11 +502,23 @@ function ensurePortal() {
       highlightSurfaceVariant();
     });
   });
+
+  let tempCustomColors = getCustomColors();
+
   portal.querySelectorAll('[data-custom-color]').forEach(input => {
     input.addEventListener("input", event => {
-      handleCustomColorInput(event.target.dataset.customColor, event.target.value);
+      tempCustomColors[event.target.dataset.customColor] = event.target.value;
     });
   });
+
+  const applyButton = portal.querySelector('[data-apply-custom-colors]');
+  if (applyButton) {
+    applyButton.addEventListener("click", () => {
+      setCustomColors(tempCustomColors);
+      setPreset(PRESET_CUSTOM);
+    });
+  }
+
   const densityToggle = portal.querySelector('[data-density-toggle]');
   if (densityToggle) {
     densityToggle.addEventListener("change", () => {
@@ -693,15 +698,7 @@ function handleEscape(event) {
   }
 }
 
-function handleCustomColorInput(key, value) {
-  if (!key || !value) {
-    return;
-  }
-  const colors = getCustomColors();
-  colors[key] = value;
-  setCustomColors(colors);
-  setPreset(PRESET_CUSTOM);
-}
+
 
 function hexToHsl(hex) {
   let normalized = hex.replace(/[^0-9a-f]/gi, "").toLowerCase();
