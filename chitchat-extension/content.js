@@ -17,9 +17,234 @@ const THEME_STYLE_ID = "chitchat-extension-theme-style";
 const ACTION_BAR_SELECTOR = 'div.flex.flex-1.justify-end.gap-1, div.flex.flex-1.justify-end.gap-2, div.flex.flex-1.justify-end';
 const BUTTON_CLASSES = "inline-flex disabled:select-none items-center justify-center text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 rounded-full relative chitchat-settings-trigger";
 const FRIEND_ICON_SIGNATURE = "12.5 9a3.5 3.5 0 1 1 0 7";
+const CUSTOM_DEFAULTS = {
+  primary: "#9d4edd",
+  accent: "#b5179e"
+};
+const PRESET_ATTR = "ccPreset";
+const PRESET_STORAGE_KEY = "chitchat-extension-theme-preset";
+const CUSTOM_COLORS_STORAGE_KEY = "chitchat-extension-custom-colors";
+const PRESET_DEFAULT = "purple";
+const PRESET_CUSTOM = "custom";
+const PRESET_OPTIONS = ["purple", "blue", "orange", "red", "pink", "green", PRESET_CUSTOM];
+const PRESET_TOKEN_KEYS = [
+  "brightness",
+  "brightness-foreground",
+  "placeholder",
+  "placeholder-foreground",
+  "overlay",
+  "gradient",
+  "background",
+  "foreground",
+  "panel",
+  "panel-foreground",
+  "card",
+  "card-foreground",
+  "popover",
+  "popover-foreground",
+  "primary",
+  "primary-foreground",
+  "secondary",
+  "secondary-foreground",
+  "accent",
+  "accent-foreground",
+  "muted",
+  "muted-foreground",
+  "field",
+  "field-foreground",
+  "action",
+  "action-foreground",
+  "destructive",
+  "destructive-foreground",
+  "warning",
+  "warning-foreground",
+  "success",
+  "success-foreground",
+  "border",
+  "input",
+  "ring"
+];
+
+let darkModeObserver = null;
 
 function datasetHost() {
   return document.body || null;
+}
+
+function enforceDarkMode(host) {
+  if (!host) {
+    return;
+  }
+  const apply = () => {
+    host.classList.add("dark");
+    host.classList.remove("light");
+  };
+  apply();
+  if (darkModeObserver) {
+    darkModeObserver.disconnect();
+  }
+  darkModeObserver = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      if (mutation.attributeName === "class") {
+        if (!host.classList.contains("dark") || host.classList.contains("light")) {
+          apply();
+        }
+        break;
+      }
+    }
+  });
+  darkModeObserver.observe(host, { attributes: true, attributeFilter: ["class"] });
+}
+
+function formatPresetLabel(preset) {
+  if (preset === PRESET_CUSTOM) {
+    return "Custom";
+  }
+  return preset.charAt(0).toUpperCase() + preset.slice(1);
+}
+
+function highlightPresetButtons() {
+  const current = getPreset();
+  document.querySelectorAll(`#${PORTAL_ID} [data-preset]`).forEach(button => {
+    if (button.dataset.preset === current) {
+      button.classList.add("is-active");
+    } else {
+      button.classList.remove("is-active");
+    }
+  });
+}
+
+function getPreset() {
+  try {
+    const stored = window.localStorage.getItem(PRESET_STORAGE_KEY);
+    if (PRESET_OPTIONS.includes(stored)) {
+      return stored;
+    }
+  } catch (error) {
+  }
+  return PRESET_DEFAULT;
+}
+
+function setPreset(preset, options = {}) {
+  const { silent = false, skipStore = false } = options;
+  const chosen = PRESET_OPTIONS.includes(preset) ? preset : PRESET_DEFAULT;
+  const host = datasetHost();
+  if (host) {
+    if (chosen === PRESET_DEFAULT) {
+      delete host.dataset[PRESET_ATTR];
+    } else {
+      host.dataset[PRESET_ATTR] = chosen;
+    }
+  }
+  if (!skipStore) {
+    try {
+      window.localStorage.setItem(PRESET_STORAGE_KEY, chosen);
+    } catch (error) {
+    }
+  }
+  applyPresetTokens(chosen);
+  if (!silent) {
+    highlightPresetButtons();
+    syncCustomInputs();
+    highlightActiveVariant();
+    highlightSurfaceVariant();
+  }
+  syncCustomSectionState();
+  return chosen;
+}
+
+function applyPreset() {
+  const preset = getPreset();
+  applyPresetTokens(preset);
+}
+
+function applyPresetTokens(preset) {
+  const host = datasetHost();
+  if (!host) {
+    return;
+  }
+  if (preset === PRESET_CUSTOM) {
+    const tokens = buildCustomTokenSet();
+    if (!tokens) {
+      return;
+    }
+    Object.entries(tokens).forEach(([token, value]) => {
+      host.style.setProperty(`--${token}`, value);
+    });
+    host.dataset[PRESET_ATTR] = PRESET_CUSTOM;
+    return;
+  }
+  PRESET_TOKEN_KEYS.forEach(token => {
+    host.style.removeProperty(`--${token}`);
+  });
+  if (preset === PRESET_DEFAULT) {
+    delete host.dataset[PRESET_ATTR];
+  } else {
+    host.dataset[PRESET_ATTR] = preset;
+  }
+}
+
+function getCustomColors() {
+  try {
+    const stored = window.localStorage.getItem(CUSTOM_COLORS_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === "object") {
+        return {
+          primary: parsed.primary || CUSTOM_DEFAULTS.primary,
+          accent: parsed.accent || CUSTOM_DEFAULTS.accent
+        };
+      }
+    }
+  } catch (error) {
+  }
+  return { ...CUSTOM_DEFAULTS };
+}
+
+function setCustomColors(colors) {
+  try {
+    window.localStorage.setItem(CUSTOM_COLORS_STORAGE_KEY, JSON.stringify(colors));
+  } catch (error) {
+  }
+  if (getPreset() === PRESET_CUSTOM) {
+    applyPresetTokens(PRESET_CUSTOM);
+  }
+  syncCustomInputs();
+}
+
+function syncCustomInputs() {
+  const colors = getCustomColors();
+  document.querySelectorAll(`#${PORTAL_ID} [data-custom-color]`).forEach(input => {
+    const key = input.dataset.customColor;
+    if (colors[key]) {
+      input.value = colors[key];
+    }
+  });
+}
+
+function syncCustomSectionState() {
+  const section = document.querySelector(`#${PORTAL_ID} [data-custom-section]`);
+  if (!section) {
+    return;
+  }
+  const isCustom = getPreset() === PRESET_CUSTOM;
+  section.dataset.enabled = isCustom ? "true" : "false";
+  section.querySelectorAll("input").forEach(input => {
+    input.disabled = !isCustom;
+  });
+  if (isCustom) {
+    syncCustomInputs();
+  }
+}
+
+function handleCustomColorInput(key, value) {
+  if (!key || !value) {
+    return;
+  }
+  const colors = getCustomColors();
+  colors[key] = value;
+  setCustomColors(colors);
+  setPreset(PRESET_CUSTOM);
 }
 
 function withRetry(fn, interval = 500, limit = 20) {
@@ -149,34 +374,66 @@ function ensurePortal() {
   }
   const portal = document.createElement("div");
   portal.id = PORTAL_ID;
+  const presetButtonsMarkup = PRESET_OPTIONS.map(preset => {
+    const label = formatPresetLabel(preset);
+    return `<button type="button" data-preset="${preset}">${label}</button>`;
+  }).join("");
   portal.innerHTML = `
     <div id="${PANEL_ID}" role="dialog" aria-modal="true" aria-labelledby="${PANEL_ID}-title">
       <div class="chitchat-settings-header">
         <h2 id="${PANEL_ID}-title">ChitChat Extension Settings</h2>
         <button type="button" class="chitchat-settings-close" aria-label="Close settings">&times;</button>
       </div>
-      <div class="chitchat-settings-section">
-        <span class="chitchat-settings-label">Theme intensity</span>
-        <div class="chitchat-settings-options" role="group" aria-label="Theme intensity">
-          <button type="button" data-variant="${VARIANT_DEFAULT}">Shades of Purple</button>
-          <button type="button" data-variant="${VARIANT_SOFT}">Soft Lavender</button>
+      <div class="chitchat-settings-body">
+        <div class="chitchat-settings-category">
+          <h3 class="chitchat-settings-subtitle">Theme</h3>
+          <div class="chitchat-settings-section">
+            <span class="chitchat-settings-label">Preset palettes</span>
+            <div class="chitchat-settings-options chitchat-settings-options--wrap" role="group" aria-label="Theme presets">
+              ${presetButtonsMarkup}
+            </div>
+          </div>
+          <div class="chitchat-settings-section chitchat-settings-section--custom" data-custom-section>
+            <span class="chitchat-settings-label">Custom palette</span>
+            <p class="chitchat-settings-hint">Choose the “Custom” preset to edit primary and accent colors.</p>
+            <div class="chitchat-color-controls">
+              <label class="chitchat-color-field">
+                <span>Primary</span>
+                <input type="color" value="${CUSTOM_DEFAULTS.primary}" data-custom-color="primary">
+              </label>
+              <label class="chitchat-color-field">
+                <span>Accent</span>
+                <input type="color" value="${CUSTOM_DEFAULTS.accent}" data-custom-color="accent">
+              </label>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="chitchat-settings-section">
-        <span class="chitchat-settings-label">Surface styling</span>
-        <div class="chitchat-settings-options" role="group" aria-label="Surface styling">
-          <button type="button" data-surface="${SURFACE_DEFAULT}">Standard Gloss</button>
-          <button type="button" data-surface="${SURFACE_FROSTED}">Frosted Glass</button>
+        <div class="chitchat-settings-category">
+          <h3 class="chitchat-settings-subtitle">Appearance</h3>
+          <div class="chitchat-settings-section">
+            <span class="chitchat-settings-label">Theme intensity</span>
+            <div class="chitchat-settings-options" role="group" aria-label="Theme intensity">
+              <button type="button" data-variant="${VARIANT_DEFAULT}">Shades of Purple</button>
+              <button type="button" data-variant="${VARIANT_SOFT}">Soft Lavender</button>
+            </div>
+          </div>
+          <div class="chitchat-settings-section">
+            <span class="chitchat-settings-label">Surface styling</span>
+            <div class="chitchat-settings-options" role="group" aria-label="Surface styling">
+              <button type="button" data-surface="${SURFACE_DEFAULT}">Standard Gloss</button>
+              <button type="button" data-surface="${SURFACE_FROSTED}">Frosted Glass</button>
+            </div>
+          </div>
+          <div class="chitchat-settings-section">
+            <span class="chitchat-settings-label">Layout density</span>
+            <label class="chitchat-toggle">
+              <input type="checkbox" data-density-toggle>
+              <span class="chitchat-toggle-slider" aria-hidden="true"></span>
+              <span class="chitchat-toggle-text">Compact mode</span>
+            </label>
+            <p class="chitchat-settings-hint">Reduces radii and surface padding for tighter layouts.</p>
+          </div>
         </div>
-      </div>
-      <div class="chitchat-settings-section">
-        <span class="chitchat-settings-label">Layout density</span>
-        <label class="chitchat-toggle">
-          <input type="checkbox" data-density-toggle>
-          <span class="chitchat-toggle-slider" aria-hidden="true"></span>
-          <span class="chitchat-toggle-text">Compact mode</span>
-        </label>
-        <p class="chitchat-settings-hint">Reduces radii and surface padding for tighter layouts.</p>
       </div>
       <div class="chitchat-settings-footnote">Changes apply immediately and persist for this browser.</div>
     </div>
@@ -188,6 +445,11 @@ function ensurePortal() {
     }
   });
   portal.querySelector(".chitchat-settings-close").addEventListener("click", closeSettings);
+  portal.querySelectorAll('[data-preset]').forEach(button => {
+    button.addEventListener("click", () => {
+      setPreset(button.dataset.preset);
+    });
+  });
   portal.querySelectorAll('[data-variant]').forEach(button => {
     button.addEventListener("click", () => {
       setThemeVariant(button.dataset.variant);
@@ -200,6 +462,11 @@ function ensurePortal() {
       highlightSurfaceVariant();
     });
   });
+  portal.querySelectorAll('[data-custom-color]').forEach(input => {
+    input.addEventListener("input", event => {
+      handleCustomColorInput(event.target.dataset.customColor, event.target.value);
+    });
+  });
   const densityToggle = portal.querySelector('[data-density-toggle]');
   if (densityToggle) {
     densityToggle.addEventListener("change", () => {
@@ -209,6 +476,9 @@ function ensurePortal() {
   }
   highlightActiveVariant();
   highlightSurfaceVariant();
+  highlightPresetButtons();
+  syncCustomInputs();
+  syncCustomSectionState();
   syncDensityToggle();
   return portal;
 }
@@ -245,8 +515,11 @@ function toggleSettings() {
 
 function openSettings() {
   ensurePortal();
+  highlightPresetButtons();
   highlightActiveVariant();
   highlightSurfaceVariant();
+  syncCustomInputs();
+  syncCustomSectionState();
   syncDensityToggle();
   const host = datasetHost();
   if (host) {
@@ -275,6 +548,7 @@ function setThemeVariant(variant) {
     window.localStorage.setItem(STORAGE_KEY, value);
   } catch (error) {
   }
+  applyPresetTokens(getPreset());
 }
 
 function getThemeVariant() {
@@ -307,6 +581,7 @@ function setSurfaceVariant(surface) {
     window.localStorage.setItem(SURFACE_STORAGE_KEY, value);
   } catch (error) {
   }
+  applyPresetTokens(getPreset());
 }
 
 function getSurfaceVariant() {
@@ -371,6 +646,138 @@ function handleEscape(event) {
   }
 }
 
+function handleCustomColorInput(key, value) {
+  if (!key || !value) {
+    return;
+  }
+  const colors = getCustomColors();
+  colors[key] = value;
+  setCustomColors(colors);
+  setPreset(PRESET_CUSTOM);
+}
+
+function hexToHsl(hex) {
+  let normalized = hex.replace(/[^0-9a-f]/gi, "").toLowerCase();
+  if (normalized.length === 3) {
+    normalized = normalized.split("").map(ch => ch + ch).join("");
+  }
+  if (normalized.length !== 6) {
+    return { h: 0, s: 0, l: 0 };
+  }
+  const r = parseInt(normalized.slice(0, 2), 16) / 255;
+  const g = parseInt(normalized.slice(2, 4), 16) / 255;
+  const b = parseInt(normalized.slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+  if (delta !== 0) {
+    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+    switch (max) {
+      case r:
+        h = (g - b) / delta + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / delta + 2;
+        break;
+      case b:
+        h = (r - g) / delta + 4;
+        break;
+    }
+    h /= 6;
+  }
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100)
+  };
+}
+
+function hslToString(hsl) {
+  return `${hsl.h} ${hsl.s}% ${hsl.l}%`;
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function adjustLightness(hsl, delta) {
+  return {
+    h: hsl.h,
+    s: hsl.s,
+    l: clamp(hsl.l + delta, 0, 100)
+  };
+}
+
+function chooseForeground(lightness) {
+  return lightness > 60 ? "0 0% 12%" : "0 0% 100%";
+}
+
+function buildCustomTokenSet() {
+  const colors = getCustomColors();
+  const primaryHsl = hexToHsl(colors.primary);
+  const accentHsl = hexToHsl(colors.accent);
+  const background = {
+    h: primaryHsl.h,
+    s: clamp(Math.round(primaryHsl.s * 0.45), 16, 48),
+    l: 12
+  };
+  const foreground = {
+    h: primaryHsl.h,
+    s: clamp(Math.round(primaryHsl.s * 0.35), 20, 58),
+    l: 88
+  };
+  const panel = { ...background, l: clamp(background.l + 4, 0, 100) };
+  const card = { ...background, l: clamp(background.l + 6, 0, 100) };
+  const popover = { ...background, l: clamp(background.l + 8, 0, 100) };
+  const secondaryHsl = adjustLightness(primaryHsl, -10);
+  const mutedHsl = adjustLightness(primaryHsl, -18);
+  const borderHsl = adjustLightness(primaryHsl, -32);
+  const fieldHsl = { ...background, l: clamp(background.l + 10, 0, 100) };
+  const actionHsl = { ...background, l: clamp(background.l + 14, 0, 100) };
+  const overlayHsl = adjustLightness(background, -6);
+  const placeholderHsl = { ...background, l: clamp(background.l + 8, 0, 100) };
+  return {
+    brightness: "0 0% 0%",
+    "brightness-foreground": "0 0% 100%",
+    gradient: hslToString(primaryHsl),
+    overlay: hslToString(overlayHsl),
+    background: hslToString(background),
+    foreground: hslToString(foreground),
+    panel: hslToString(panel),
+    "panel-foreground": hslToString(foreground),
+    card: hslToString(card),
+    "card-foreground": hslToString(foreground),
+    popover: hslToString(popover),
+    "popover-foreground": hslToString(foreground),
+    placeholder: hslToString(placeholderHsl),
+    "placeholder-foreground": hslToString(adjustLightness(foreground, -8)),
+    primary: hslToString(primaryHsl),
+    "primary-foreground": chooseForeground(primaryHsl.l),
+    secondary: hslToString(secondaryHsl),
+    "secondary-foreground": chooseForeground(secondaryHsl.l),
+    accent: hslToString(accentHsl),
+    "accent-foreground": chooseForeground(accentHsl.l),
+    muted: hslToString(mutedHsl),
+    "muted-foreground": chooseForeground(mutedHsl.l),
+    field: hslToString(fieldHsl),
+    "field-foreground": chooseForeground(fieldHsl.l),
+    action: hslToString(actionHsl),
+    "action-foreground": chooseForeground(actionHsl.l),
+    destructive: "350 82% 60%",
+    "destructive-foreground": "0 0% 100%",
+    warning: "40 92% 58%",
+    "warning-foreground": "40 96% 16%",
+    success: "150 62% 48%",
+    "success-foreground": "0 0% 100%",
+    border: hslToString(borderHsl),
+    input: hslToString(adjustLightness(borderHsl, 6)),
+    ring: hslToString(primaryHsl)
+  };
+}
+
 function initialize() {
   console.info("[ChitChat Extension] initializing content script");
   withRetry(() => {
@@ -378,12 +785,16 @@ function initialize() {
     if (!host) {
       return false;
     }
-    host.classList.add("dark");
+    enforceDarkMode(host);
     ensureThemeStyles();
     applyStoredVariant();
     applySurfaceVariant();
     applyDensityMode();
+    applyPreset();
     ensurePortal();
+    highlightPresetButtons();
+    syncCustomInputs();
+    syncCustomSectionState();
     document.addEventListener("keydown", handleEscape);
     withRetry(insertGearButton, 400, 80);
     return true;
