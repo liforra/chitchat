@@ -26,7 +26,7 @@ const PRESET_STORAGE_KEY = "chitchat-extension-theme-preset";
 const CUSTOM_COLORS_STORAGE_KEY = "chitchat-extension-custom-colors";
 const PRESET_DEFAULT = "purple";
 const PRESET_CUSTOM = "custom";
-const PRESET_OPTIONS = ["purple", "blue", "orange", "red", "pink", "green", PRESET_CUSTOM];
+const PRESET_OPTIONS = ["purple", "blue", "orange", "red", "pink", "green", PRESET_CUSTOM, "none"];
 const PRESET_TOKEN_KEYS = [
   "brightness",
   "brightness-foreground",
@@ -100,6 +100,9 @@ function formatPresetLabel(preset) {
   if (preset === PRESET_CUSTOM) {
     return "Custom";
   }
+  if (preset === "none") {
+    return "None";
+  }
   return preset.charAt(0).toUpperCase() + preset.slice(1);
 }
 
@@ -128,6 +131,7 @@ function getPreset() {
 function setPreset(preset, options = {}) {
   const { silent = false, skipStore = false } = options;
   const chosen = PRESET_OPTIONS.includes(preset) ? preset : PRESET_DEFAULT;
+  ensureThemeStyles();
   const host = datasetHost();
   if (host) {
     if (chosen === PRESET_DEFAULT) {
@@ -177,7 +181,16 @@ function applyPresetTokens(preset) {
   PRESET_TOKEN_KEYS.forEach(token => {
     host.style.removeProperty(`--${token}`);
   });
-  if (preset === PRESET_DEFAULT) {
+  if (preset === "none") {
+    delete host.dataset[PRESET_ATTR];
+    delete host.dataset[THEME_ATTR];
+    delete host.dataset[SURFACE_ATTR];
+    delete host.dataset[DENSITY_ATTR];
+    const themeStyle = document.getElementById(THEME_STYLE_ID);
+    if (themeStyle) {
+      themeStyle.remove();
+    }
+  } else if (preset === PRESET_DEFAULT) {
     delete host.dataset[PRESET_ATTR];
   } else {
     host.dataset[PRESET_ATTR] = preset;
