@@ -222,9 +222,6 @@ body[data-cc-settings-open="true"] #chitchat-settings-portal {
 }
 
 .chitchat-settings-body {
-  display: grid;
-  gap: 1.5rem;
-  margin-top: 0.75rem;
   overflow-y: auto;
   padding-right: 0.35rem;
   padding-bottom: 0.5rem;
@@ -851,4 +848,55 @@ body[data-cc-density="compact"] .chitchat-settings-section {
 
 body[data-cc-density="compact"] #chitchat-settings-panel {
   gap: 0.8rem;
+}
+
+.chitchat-settings-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid hsla(var(--border) / 0.5);
+  padding: 0 1.5rem;
+  margin: 0 -1.5rem;
+}
+
+.chitchat-settings-tab {
+  background: none;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  padding: 0.75rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.chitchat-settings-tab:hover {
+  color: hsl(var(--foreground));
+}
+
+.chitchat-settings-tab.is-active {
+  color: hsl(var(--primary));
+}
+
+.chitchat-settings-tab.is-active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: hsl(var(--primary));
+}
+
+.chitchat-settings-tab-panel {
+  display: none;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  padding-bottom: 0.5rem;
+}
+
+.chitchat-settings-tab-panel.is-active {
+  display: grid;
 }

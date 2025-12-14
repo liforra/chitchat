@@ -397,55 +397,69 @@ function ensurePortal() {
         <h2 id="${PANEL_ID}-title">ChitChat Extension Settings</h2>
         <button type="button" class="chitchat-settings-close" aria-label="Close settings">&times;</button>
       </div>
+      <div class="chitchat-settings-tabs">
+        <button type="button" class="chitchat-settings-tab is-active" data-tab="theme">Theme</button>
+        <button type="button" class="chitchat-settings-tab" data-tab="appearance">Appearance</button>
+        <button type="button" class="chitchat-settings-tab" data-tab="general">General</button>
+      </div>
       <div class="chitchat-settings-body">
-        <div class="chitchat-settings-category">
-          <h3 class="chitchat-settings-subtitle">Theme</h3>
-          <div class="chitchat-settings-section">
-            <span class="chitchat-settings-label">Preset palettes</span>
-            <div class="chitchat-settings-options chitchat-settings-options--wrap" role="group" aria-label="Theme presets">
-              ${presetButtonsMarkup}
+        <div class="chitchat-settings-tab-panel is-active" data-tab-panel="theme">
+          <div class="chitchat-settings-category">
+            <h3 class="chitchat-settings-subtitle">Theme</h3>
+            <div class="chitchat-settings-section">
+              <span class="chitchat-settings-label">Preset palettes</span>
+              <div class="chitchat-settings-options chitchat-settings-options--wrap" role="group" aria-label="Theme presets">
+                ${presetButtonsMarkup}
+              </div>
             </div>
-          </div>
-          <div class="chitchat-settings-section chitchat-settings-section--custom" data-custom-section>
-            <span class="chitchat-settings-label">Custom palette</span>
-            <p class="chitchat-settings-hint">Choose the “Custom” preset to edit primary and accent colors.</p>
-            <div class="chitchat-color-controls">
-              <label class="chitchat-color-field">
-                <span>Primary</span>
-                <input type="color" value="${CUSTOM_DEFAULTS.primary}" data-custom-color="primary">
-              </label>
-              <label class="chitchat-color-field">
-                <span>Accent</span>
-                <input type="color" value="${CUSTOM_DEFAULTS.accent}" data-custom-color="accent">
-              </label>
+            <div class="chitchat-settings-section chitchat-settings-section--custom" data-custom-section>
+              <span class="chitchat-settings-label">Custom palette</span>
+              <p class="chitchat-settings-hint">Choose the “Custom” preset to edit primary and accent colors.</p>
+              <div class="chitchat-color-controls">
+                <label class="chitchat-color-field">
+                  <span>Primary</span>
+                  <input type="color" value="${CUSTOM_DEFAULTS.primary}" data-custom-color="primary">
+                </label>
+                <label class="chitchat-color-field">
+                  <span>Accent</span>
+                  <input type="color" value="${CUSTOM_DEFAULTS.accent}" data-custom-color="accent">
+                </label>
+              </div>
             </div>
           </div>
         </div>
-        <div class="chitchat-settings-category">
-          <h3 class="chitchat-settings-subtitle">Appearance</h3>
-          <div class="chitchat-settings-section">
-            <span class="chitchat-settings-label">Theme intensity</span>
-            <div class="chitchat-settings-options" role="group" aria-label="Theme intensity">
-              <button type="button" data-variant="${VARIANT_DEFAULT}">Shades of Purple</button>
-              <button type="button" data-variant="${VARIANT_SOFT}">Soft Lavender</button>
+        <div class="chitchat-settings-tab-panel" data-tab-panel="appearance">
+          <div class="chitchat-settings-category">
+            <h3 class="chitchat-settings-subtitle">Appearance</h3>
+            <div class="chitchat-settings-section">
+              <span class="chitchat-settings-label">Theme intensity</span>
+              <div class="chitchat-settings-options" role="group" aria-label="Theme intensity">
+                <button type="button" data-variant="${VARIANT_DEFAULT}">Shades of Purple</button>
+                <button type="button" data-variant="${VARIANT_SOFT}">Soft Lavender</button>
+              </div>
+            </div>
+            <div class="chitchat-settings-section">
+              <span class="chitchat-settings-label">Surface styling</span>
+              <div class="chitchat-settings-options" role="group" aria-label="Surface styling">
+                <button type="button" data-surface="${SURFACE_DEFAULT}">Standard Gloss</button>
+                <button type="button" data-surface="${SURFACE_FROSTED}">Frosted Glass</button>
+              </div>
             </div>
           </div>
-          <div class="chitchat-settings-section">
-            <span class="chitchat-settings-label">Surface styling</span>
-            <div class="chitchat-settings-options" role="group" aria-label="Surface styling">
-              <button type="button" data-surface="${SURFACE_DEFAULT}">Standard Gloss</button>
-              <button type="button" data-surface="${SURFACE_FROSTED}">Frosted Glass</button>
+        </div>
+        <div class="chitchat-settings-tab-panel" data-tab-panel="general">
+            <div class="chitchat-settings-category">
+                <h3 class="chitchat-settings-subtitle">General</h3>
+                <div class="chitchat-settings-section">
+                    <span class="chitchat-settings-label">Layout density</span>
+                    <label class="chitchat-toggle">
+                    <input type="checkbox" data-density-toggle>
+                    <span class="chitchat-toggle-slider" aria-hidden="true"></span>
+                    <span class="chitchat-toggle-text">Compact mode</span>
+                    </label>
+                    <p class="chitchat-settings-hint">Reduces radii and surface padding for tighter layouts.</p>
+                </div>
             </div>
-          </div>
-          <div class="chitchat-settings-section">
-            <span class="chitchat-settings-label">Layout density</span>
-            <label class="chitchat-toggle">
-              <input type="checkbox" data-density-toggle>
-              <span class="chitchat-toggle-slider" aria-hidden="true"></span>
-              <span class="chitchat-toggle-text">Compact mode</span>
-            </label>
-            <p class="chitchat-settings-hint">Reduces radii and surface padding for tighter layouts.</p>
-          </div>
         </div>
       </div>
       <div class="chitchat-settings-footnote">Changes apply immediately and persist for this browser.</div>
@@ -457,6 +471,26 @@ function ensurePortal() {
       closeSettings();
     }
   });
+
+  const tabs = portal.querySelectorAll(".chitchat-settings-tab");
+  const tabPanels = portal.querySelectorAll(".chitchat-settings-tab-panel");
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("is-active"));
+      tab.classList.add("is-active");
+
+      const targetPanel = tab.dataset.tab;
+      tabPanels.forEach(panel => {
+        if (panel.dataset.tabPanel === targetPanel) {
+          panel.classList.add("is-active");
+        } else {
+          panel.classList.remove("is-active");
+        }
+      });
+    });
+  });
+
   portal.querySelector(".chitchat-settings-close").addEventListener("click", closeSettings);
   portal.querySelectorAll('[data-preset]').forEach(button => {
     button.addEventListener("click", () => {
