@@ -930,15 +930,16 @@ body.dark[data-cc-preset="amoled"] {
   --placeholder: 0 0% 20%;
   --placeholder-foreground: 0 0% 60%;
 
-  --overlay: 0 0% 0%;
+  --overlay: 270 65% 5%;
   --background: 0 0% 0%;
   --foreground: 0 0% 88%;
+  --message-foreground: 0 0% 50%;
 
-  --panel: 0 0% 3%;
+  --panel: 0 0% 5%;
   --panel-foreground: 0 0% 88%;
-  --card: 0 0% 4%;
+  --card: 0 0% 7%;
   --card-foreground: 0 0% 90%;
-  --popover: 0 0% 5%;
+  --popover: 0 0% 8%;
   --popover-foreground: 0 0% 92%;
 
   --primary: 265 85% 65%;
@@ -946,7 +947,7 @@ body.dark[data-cc-preset="amoled"] {
   --secondary: 282 45% 42%;
   --secondary-foreground: 282 85% 92%;
   --accent: 295 55% 38%;
-  --accent-foreground: 295 100% 92%;
+  --accent-foreground: 295 100% 94%;
 
   --muted: 0 0% 8%;
   --muted-foreground: 0 0% 72%;
@@ -963,8 +964,14 @@ body.dark[data-cc-preset="amoled"] {
   --success: 150 65% 42%;
   --success-foreground: 150 100% 90%;
 
-  --border: 0 0% 8%;
-  --input: 0 0% 10%;
+  --border: 270 28% 12%;
+  --input: 270 30% 15%;
   --ring: 265 80% 65%;
+}
+
+
+.dark .dark\:text-message,
+.dark .dark\:text-message span {
+    color: hsl(var(--message-foreground)) !important;
 }
 
