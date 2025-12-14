@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "ChitChat Theme",
+  "version": "1.3",
+  "description": "Shades of purple theme and extension controls for ChitChat.",
+  "content_scripts": [
+    {
+      "matches": ["*://*.chitchat.gg/*"],
+      "css": ["theme.css"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.chitchat.gg/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["theme.css"],
+      "matches": ["*://*.chitchat.gg/*"]
+    }
+  ]
+}
