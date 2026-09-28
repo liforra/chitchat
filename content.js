@@ -2305,11 +2305,21 @@ const LINK_SPACE = "[ \\t]{0,3}";
 // into the same pasted link, past where the scheme text had already ended)
 // are found the same way regardless of how many labels they have.
 const LINK_HOST_SOURCE = `${LINK_LABEL_SOURCE}(?:${LINK_SPACE}${LINK_SEP_SOURCE}${LINK_SPACE}${LINK_LABEL_SOURCE})+`;
+// A path/query can legitimately keep going after another padded, dotted
+// word - e.g. a second URL tucked into a query string, itself obfuscated
+// the same way a host is ("...janus.url=...vesta.janusxr .org/spyduck"):
+// that's still all ONE pasted link, so the padding space must not end it
+// early. Dot-only (not comma): a bare comma right after a link is far too
+// often just ordinary punctuation ("check this out https://x.com/y, thanks")
+// to safely bridge across.
+const LINK_PATH_DOT_SOURCE = "(?:\\.|\\[\\.\\]|\\(\\.\\)|\\(dot\\)|\\[dot\\])";
+const LINK_PATH_BRIDGE_SOURCE = `${LINK_SPACE}${LINK_PATH_DOT_SOURCE}${LINK_SPACE}(?=${LINK_LABEL_SOURCE})`;
+const LINK_PATH_SOURCE = `(?:[^\\s<>"]|${LINK_PATH_BRIDGE_SOURCE})*`;
 // Groups: 1 scheme (+ any padding after it), 2 host written with a scheme,
 // 3 host written without one, 4 port, 5 path.
 const LINK_CANDIDATE_RE = new RegExp(
   `(?<![\\w@/:.\\-])(?:(h(?:tt|xx)ps?://${LINK_SPACE})(${LINK_HOST_SOURCE})` +
-  `|(${LINK_HOST_SOURCE}))(?::(\\d{1,5})(?!\\w))?([/?#][^\\s<>"]*)?`,
+  `|(${LINK_HOST_SOURCE}))(?::(\\d{1,5})(?!\\w))?([/?#]${LINK_PATH_SOURCE})?`,
   "gi"
 );
 const LINK_SEP_SPLIT_RE = new RegExp(`(${LINK_SEP_SOURCE})`, "i");
@@ -2484,7 +2494,10 @@ function findLinksInText(text) {
     hits.push({
       start,
       end,
-      url: `${explicitScheme ? normalizedScheme : "https://"}${host}${port}${path}`
+      // Any space still in `path` here only ever came from a bridged dot
+      // (see LINK_PATH_BRIDGE_SOURCE) - always padding, never real path
+      // content, so it's safe to drop entirely when building the real URL.
+      url: `${explicitScheme ? normalizedScheme : "https://"}${host}${port}${path.replace(/\s+/g, "")}`
     });
     // Rescan from the end of the link so any text left over after a cut (the
     // rest of a comma chain) can still contain another link.
@@ -3254,7 +3267,9 @@ const MSGLOG_PREFIX = "chitchat-msglog:";
 const MSGLOG_SAVE_DELAY_MS = 800;
 
 function getCurrentConversationId() {
-  const match = /\/chat\/[^/]+\/([^/?#]+)/.exec(location.pathname);
+  // A DM is /chat/<id>, but some other kinds of chat have an extra segment
+  // in between (/chat/new/<id>) - either way, the id is the last segment.
+  const match = /\/chat\/(?:[^/?#]+\/)?([^/?#]+)/.exec(location.pathname);
   return match ? match[1] : null;
 }
 
@@ -3362,6 +3377,17 @@ function findHoleDeletions(order, currentIds) {
 function applyVisibleRowsToLog(log, visibleRows) {
   const editedIds = [];
   visibleRows.forEach(row => {
+    // A message the site hasn't assigned a real id to yet (sent but not
+    // server-confirmed) comes through parseMessageRow with a synthetic
+    // "t:<timestamp>:<text>" fallback key. Never log it under that key: the
+    // instant the server confirms it and the real id replaces it in the DOM,
+    // that fallback key would vanish from view exactly like a deletion,
+    // flagging every message the user sends as "deleted" moments after
+    // sending it. Wait for the real id - it'll get logged normally once the
+    // row re-renders with it, same scan or the next one.
+    if (row.id.startsWith("t:")) {
+      return;
+    }
     const existing = log.messages[row.id];
     if (!existing) {
       log.messages[row.id] = {
@@ -3517,11 +3543,24 @@ async function updateMessageLog(root) {
 
   // A grouped/continuation row has no header of its own (author: null from
   // parseMessageRow); forward-fill from the nearest preceding row that had
-  // one, the same as the export feature's finalizeMessages does.
+  // one, the same as the export feature's finalizeMessages does. A ghost row
+  // (the deleted message this ITSELF was the header of) has to feed that
+  // forward-fill too, or the real continuation row right after it falls back
+  // to whoever the fill last saw BEFORE the deleted run started - which is
+  // often the current user from an earlier message, misattributing someone
+  // else's still-present message as sent by you.
   let lastAuthor = null;
   let lastAvatar = null;
   const visibleRows = Array.from(root.querySelectorAll(":scope > li"))
     .map(li => {
+      if (li.classList.contains("cc-deleted-row")) {
+        const entry = msgLog.messages[li.dataset.ccDeletedId];
+        if (entry && entry.author && entry.author !== "Unknown") {
+          lastAuthor = entry.author;
+          lastAvatar = entry.avatar || lastAvatar;
+        }
+        return null;
+      }
       const parsed = parseMessageRow(li);
       if (!parsed) {
         return null;
