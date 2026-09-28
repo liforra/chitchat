@@ -726,6 +726,18 @@ ol.cc-md-list { list-style: decimal; }
   overflow-wrap: anywhere;
 }
 
+/* The site never re-shows a header for a message once the earlier message
+   that grouped it is deleted, even though it's a different person than the
+   ghost row above it - we already know who it really is, so this fills that
+   gap in. Deliberately distinct from the site's own header/from .cc-deleted-
+   name (smaller, muted) so it reads as an inferred note, not native UI. */
+.cc-orphan-author {
+  font-weight: 600;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin-bottom: 0.1rem;
+}
+
 /* Hamburger menu dropdown (Settings / Export chat) */
 body[data-cc-menu-open="true"] #chitchat-extension-menu-dropdown {
   display: flex;

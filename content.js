@@ -3513,6 +3513,47 @@ function cssEscape(value) {
   return typeof CSS !== "undefined" && CSS.escape ? CSS.escape(value) : String(value).replace(/["\\]/g, "\\$&");
 }
 
+const ORPHAN_AUTHOR_CLASS = "cc-orphan-author";
+
+// The site decides "does this message need its own header" once, when a
+// message first renders, by comparing it to whatever preceded it AT THAT
+// TIME - it never re-evaluates that later. So when the message that made a
+// later, still-real message headerless (the group's own header) gets
+// deleted, that later message is left with no visible author at all,
+// permanently, even though it's a different person than whoever the ghost
+// row shows above it. We already know who it really is from the log, so
+// label it ourselves - the site can't and won't fix this on its own.
+function renderOrphanAuthorLabels(root, visibleRows) {
+  const stillOrphaned = new Set();
+  visibleRows.forEach(row => {
+    if (!row.headerless) {
+      return;
+    }
+    const paragraph = row.li.querySelector("p[data-from]");
+    const precedingGhost = paragraph && paragraph.closest("li").previousElementSibling;
+    if (!paragraph || !precedingGhost || !precedingGhost.classList.contains("cc-deleted-row")) {
+      return;
+    }
+    stillOrphaned.add(paragraph);
+    let label = paragraph.previousElementSibling;
+    if (!label || !label.classList || !label.classList.contains(ORPHAN_AUTHOR_CLASS)) {
+      label = el("div", ORPHAN_AUTHOR_CLASS);
+      paragraph.before(label);
+    }
+    if (label.textContent !== row.author) {
+      label.textContent = row.author;
+    }
+  });
+  // Clean up labels left over from a ghost row that's since un-ghosted
+  // (reappeared) or moved, so a stale name never lingers.
+  root.querySelectorAll(`.${ORPHAN_AUTHOR_CLASS}`).forEach(label => {
+    const paragraph = label.nextElementSibling;
+    if (!paragraph || paragraph.tagName !== "P" || !stillOrphaned.has(paragraph)) {
+      label.remove();
+    }
+  });
+}
+
 // Returns true when the caller should re-scan soon (a conversation's log
 // just finished loading, or something changed that a paragraph's cached
 // signature won't pick up on its own).
@@ -3565,11 +3606,12 @@ async function updateMessageLog(root) {
       if (!parsed) {
         return null;
       }
+      const headerless = !parsed.author;
       if (parsed.author) {
         lastAuthor = parsed.author;
         lastAvatar = parsed.avatar || lastAvatar;
       }
-      return { ...parsed, author: parsed.author || lastAuthor || "Unknown", avatar: parsed.avatar || lastAvatar, li };
+      return { ...parsed, author: parsed.author || lastAuthor || "Unknown", avatar: parsed.avatar || lastAvatar, headerless, li };
     })
     .filter(Boolean);
   if (!visibleRows.length) {
@@ -3589,6 +3631,7 @@ async function updateMessageLog(root) {
   });
 
   renderDeletedRows(root, msgLog);
+  renderOrphanAuthorLabels(root, visibleRows);
   return justLoaded || editedIds.length > 0 || deletions.length > 0;
 }
 

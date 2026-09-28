@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChitChat Theme",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "description": "Shades of purple theme and extension controls for ChitChat.",
   "browser_specific_settings": {
     "gecko": {
