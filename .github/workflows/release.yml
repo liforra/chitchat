@@ -1,10 +1,14 @@
 name: Build and release
 
 # Every push and pull request builds the unsigned packages and checks them.
-# Pushing a tag like v1.9.4 publishes a GitHub release right away with the
+# Every push to main additionally checks whether manifest.json's version has
+# already been released: if it's new (no matching vX.Y.Z tag exists yet), CI
+# releases it automatically - no manual tagging step needed, just bump the
+# version and push. It publishes a GitHub release right away with the
 # unsigned Firefox .xpi, unsigned Chromium .zip and signed .crx, then - once
 # AMO finishes signing, however long that takes - appends the signed Firefox
-# .xpi and its update manifest (updates.json) to that same release.
+# .xpi and its update manifest (updates.json) to that same release. Pushing
+# to main WITHOUT bumping the version just builds/lints/tests, same as a PR.
 #
 # Secrets (Settings > Secrets and variables > Actions), all optional:
 #   AMO_JWT_ISSUER, AMO_JWT_SECRET   Firefox signing (addons.mozilla.org API key)
@@ -14,7 +18,6 @@ name: Build and release
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -23,7 +26,7 @@ permissions:
 
 concurrency:
   group: build-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+  cancel-in-progress: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' }}
 
 jobs:
   build:
@@ -42,14 +45,6 @@ jobs:
       - name: Package
         id: pkg
         run: node .github/scripts/package.mjs --out build
-
-      - name: Tag must match the manifest version
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          if [ "${GITHUB_REF_NAME#v}" != "${{ steps.pkg.outputs.version }}" ]; then
-            echo "::error::Tag ${GITHUB_REF_NAME} does not match the version in manifest.json (${{ steps.pkg.outputs.version }}). Bump manifest.json first."
-            exit 1
-          fi
 
       - name: Scripts parse
         run: |
@@ -101,12 +96,37 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+  # Decides whether THIS push is a new release: true only on a push to main
+  # whose manifest.json version doesn't have a vX.Y.Z tag yet. A push to main
+  # that didn't bump the version (a doc fix, a CI tweak...) just leaves this
+  # false, so it only builds/lints/tests like a PR would - re-signing an
+  # unchanged version fails on AMO's end anyway, so this check also protects
+  # against that.
+  check-release:
+    name: Check whether this version needs releasing
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      tag: v${{ needs.build.outputs.version }}
+    steps:
+      - name: Check for an existing release tag
+        id: check
+        run: |
+          TAG="v${{ needs.build.outputs.version }}"
+          if git ls-remote --exit-code --tags "https://github.com/${GITHUB_REPOSITORY}.git" "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+            echo "$TAG already exists - nothing new to release."
+          else
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "$TAG doesn't exist yet - this push will be released as $TAG."
+          fi
+
   sign-firefox:
     name: Sign Firefox package (AMO)
-    needs: build
-    # Only for real releases: AMO refuses a version number it has already
-    # signed, so this must not run on every push.
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, check-release]
+    if: needs.check-release.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.build.outputs.version }}
@@ -145,14 +165,17 @@ jobs:
   # Firefox .xpi, unsigned Chromium .zip, signed .crx. Deliberately does NOT
   # wait on sign-firefox - AMO review/signing can take anywhere from seconds
   # to a while, and there's no reason to hold the rest of the release hostage
-  # to it.
+  # to it. Also creates the vX.Y.Z tag itself (pointing at the exact commit
+  # that was pushed), since nothing pushed one manually.
   publish-unsigned:
     name: Publish GitHub release (unsigned)
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, check-release]
+    if: needs.check-release.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      TAG: ${{ needs.check-release.outputs.tag }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -166,9 +189,8 @@ jobs:
         run: |
           (cd dist && sha256sum * > SHA256SUMS.txt)
           ls -l dist
-          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
-            || gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
-          gh release upload "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+          gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
 
   # Runs once sign-firefox finishes, however long that takes, and appends the
   # signed .xpi plus the Firefox update manifest to the SAME release that
@@ -177,11 +199,13 @@ jobs:
   # adds files to it instead of racing to create it twice.
   publish-signed:
     name: Publish GitHub release (signed)
-    needs: [build, sign-firefox, publish-unsigned]
+    needs: [build, check-release, sign-firefox, publish-unsigned]
     if: always() && needs.publish-unsigned.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      TAG: ${{ needs.check-release.outputs.tag }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -202,7 +226,7 @@ jobs:
           xpi="chitchat-theme-${VERSION}-firefox-signed.xpi"
           if [ -f "dist/$xpi" ]; then
             hash="sha256:$(sha256sum "dist/$xpi" | cut -d' ' -f1)"
-            link="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${xpi}"
+            link="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${xpi}"
             printf '%s\n' \
               '{' \
               '  "addons": {' \
@@ -229,4 +253,4 @@ jobs:
         run: |
           (cd dist && sha256sum * > SHA256SUMS.txt)
           ls -l dist
-          gh release upload "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
