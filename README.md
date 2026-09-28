@@ -40,17 +40,17 @@ signature checking:
 
 ### Chrome(ium)
 
-Covers Chrome, Edge, Brave, Vivaldi, and similar. Chrome blocks installing a `.crx` from outside the Chrome Web
-Store even in Developer mode, so this is the route that actually works there:
+Covers Chrome, Edge, Brave, Vivaldi, and similar. Every Chromium-based browser blocks installing a `.crx` from
+outside its own web store, even in Developer mode and even by dragging it onto the extensions page - that
+restriction applies across the board, not just to plain Chrome. The signed `.crx` release asset exists for
+enterprise/managed deployment (an `ExtensionInstallForcelist`/`ExtensionInstallAllowlist` policy) rather than a
+manual install; for a normal install, this is the route that actually works everywhere:
 
 1. Download `*-chromium-unsigned.zip` and unzip it somewhere permanent (not a temp folder — Chrome reads from this
    folder every time it starts).
-2. Go to `chrome://extensions` (or `edge://extensions`, etc.).
+2. Go to `chrome://extensions` (or `edge://extensions`, `brave://extensions`, etc.).
 3. Turn on **Developer mode** (top right).
 4. Click **Load unpacked** and select the unzipped folder.
-
-Edge and Brave will also install the signed `*-chromium-signed.crx` directly (drag it onto the extensions page), if
-one exists.
 
 ### After installing
 
