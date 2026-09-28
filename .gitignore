@@ -1,1 +1,14 @@
 Chitchat _ @punitive corkscrew.mhtml
+
+# build output
+build/
+dist/
+web-ext-artifacts/
+*.pem
+
+# local tooling / OS cruft
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+

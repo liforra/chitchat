@@ -1,35 +1,118 @@
-# ChitChat Theme Extension
+# ChitChat Theme
 
-This extension enhances the ChitChat experience by providing a highly customizable theme engine and additional utility features. Tailor the chat interface to your personal preferences with various color presets, visual effects, and functional improvements.
+A browser extension for [ChitChat](https://chitchat.gg): themes, and some chat features the site doesn't have.
+
+## Install
+
+Files are on the [latest release](../../releases/latest). Pick the section for your browser.
+
+### Firefox (signed)
+
+The normal way to install it. Works in regular release Firefox and stays installed across restarts and updates.
+
+1. Download `*-firefox-signed.xpi`.
+2. Open the file, or drag it onto a Firefox window.
+3. Click **Add**.
+
+If no signed file exists yet (nobody's tagged a release since the last change), use one of the two options below instead.
+
+### Firefox (unsigned, temporary)
+
+For trying out a build before it's signed. No setup needed, but Firefox forgets it on every restart, so you'll redo
+this each time you reopen the browser.
+
+1. Download `*-firefox-unsigned.xpi` (or build it yourself: `node .github/scripts/package.mjs`, then look in
+   `build/firefox`).
+2. Go to `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on…** and pick the `.xpi` (or `build/firefox/manifest.json` if you built it yourself).
+
+### Other Firefox (unsigned, permanent)
+
+Regular release Firefox refuses to install an unsigned add-on at all, temporary or not. Firefox **Developer
+Edition**, **Nightly**, or **ESR** will, and it stays installed permanently, because those channels let you turn off
+signature checking:
+
+1. Install [Firefox Developer Edition](https://www.mozilla.org/firefox/developer/) or
+   [Nightly](https://www.mozilla.org/firefox/nightly/) (a separate install from your regular Firefox).
+2. In that browser, go to `about:config`, accept the risk, search for `xpinstall.signatures.required`, and set it to
+   `false`.
+3. Download `*-firefox-unsigned.xpi` and drag it onto that browser's window (or **File → Open File**).
+
+### Chrome(ium)
+
+Covers Chrome, Edge, Brave, Vivaldi, and similar. Chrome blocks installing a `.crx` from outside the Chrome Web
+Store even in Developer mode, so this is the route that actually works there:
+
+1. Download `*-chromium-unsigned.zip` and unzip it somewhere permanent (not a temp folder — Chrome reads from this
+   folder every time it starts).
+2. Go to `chrome://extensions` (or `edge://extensions`, etc.).
+3. Turn on **Developer mode** (top right).
+4. Click **Load unpacked** and select the unzipped folder.
+
+Edge and Brave will also install the signed `*-chromium-signed.crx` directly (drag it onto the extensions page), if
+one exists.
+
+### After installing
+
+Firefox's install prompt will say the extension collects "browsing activity" and "personal communications". That's
+the declaration for link previews and YouTube cards (they contact the linked sites) and the optional chat upload (it
+sends the chat to the server you configure). Nothing is sent to the developer.
+
+The extension also needs Firefox's / Chromium's "access all websites" permission. Without it nothing loads, and a
+small "Permissions are missing" notice appears in the corner instead. In Firefox: `about:addons` → ChitChat Theme →
+Permissions.
+
+**Browser support.** Firefox 140+ is the tested target. Chromium 111+ is supported for everything except hidden
+premium badges, which read the page's internal data in a way only Firefox allows.
 
 ## Features
 
-*   **Customizable Theme Presets:** Choose from a range of built-in color palettes including `Purple`, `Blue`, `Orange`, `Red`, `Pink`, `Green`, and `AMOLED`. Each preset offers a distinct visual style.
-*   **Soft Theme Intensity:** Opt for a "Soft Lavender" theme intensity for a gentler, less vibrant aesthetic, available alongside the default "Shades of Purple".
-*   **Frosted Glass Surface:** Apply a unique "Frosted Glass" effect to UI elements for a modern, semi-transparent look.
-*   **Compact Mode:** Reduce the spacing and padding of UI elements to achieve a more compact layout, ideal for smaller screens or denser information display.
-*   **Custom Color Palette:** Unleash your creativity by defining your own primary and accent colors using intuitive color pickers. Includes an "Apply" button for performance, ensuring updates only occur when you're ready.
-*   **Disable Theme Option:** Easily revert to ChitChat's default styling by selecting the "None" preset in the theme settings.
-*   **Add Friend by ID:** A convenient utility integrated directly into the friend requests menu, allowing you to send friend requests by entering a user's unique ID.
+- **Themes:** color presets or your own, softer tone, frosted surfaces, compact layout.
+- **Links:** clickable everywhere, including ones written to dodge detection (`google,com`, `https:// x .com/...`).
+- **Markdown:** bold, italic, underline, strikethrough, spoilers, code, quotes, lists.
+- **Embeds:** playable YouTube cards, and previews (title, description, image) for other links.
+- **Link warnings:** asks before opening links that look risky. Checked on your device only.
+- **Hidden premium badges:** a gray badge for people who have premium but hide it (Firefox only).
+- **Add a friend by ID** in the Friend Requests panel.
+- **Paste an image to attach it** in the message box — the site only supported the file picker and drag-and-drop.
+- **Export chat** as HTML, JSON or Markdown, or upload the HTML to your own server for a private link.
 
-## Installation (Signed .crx File)
+Settings are under the menu button next to the friend button.
 
-If you have a signed extension file (e.g., a `.crx` file), installation is very straightforward.
+## Releases (CI)
 
-1.  **Download the Extension:**
-    *   Obtain the signed extension file (e.g., `chitchat-extension.crx`) from the [releases page](https://github.com/liforra/chitchat/releases).
+`.github/workflows/release.yml` builds everything:
 
-2.  **Open Extensions Management Page:**
-    *   Open your browser (e.g., Chrome, Brave, Edge).
-    *   Navigate to the extensions management page. You can typically do this by typing `chrome://extensions` (or `brave://extensions`, `edge://extensions`) into the address bar and pressing Enter.
+- Every push and pull request: lint and build the unsigned Firefox `.xpi` and Chromium `.zip`.
+- Pushing a tag `vX.Y.Z` (must match `version` in `manifest.json`): also signs the Firefox package with AMO, builds a
+  signed Chromium `.crx`, and publishes all four files plus `SHA256SUMS.txt` on a GitHub release.
 
-3.  **Drag and Drop:**
-    *   Ensure "Developer mode" is **enabled** (usually a toggle in the top-right corner).
-    *   Locate the downloaded `.crx` file on your computer.
-    *   **Drag and drop the `.crx` file directly onto the `chrome://extensions` page.**
+`.github/scripts/package.mjs` splits the one `manifest.json` into `build/firefox` and `build/chromium`, each with only the
+keys that browser understands.
 
-The ChitChat Theme extension should now appear in your list of installed extensions and be active. You might need to refresh any open ChitChat tabs for the theme to take effect.
+Repository secrets (all optional; a missing one just skips that file):
 
-## Usage
+| Secret | What it is |
+|---|---|
+| `AMO_JWT_ISSUER`, `AMO_JWT_SECRET` | API key from <https://addons.mozilla.org/developers/addon/api/key/> |
+| `CRX_PRIVATE_KEY` | A PEM private key. The Chromium extension ID is derived from it, so keep using the same key. |
 
-After installation, refresh any open ChitChat tabs. You will find a new gear icon (⚙️) next to the existing friend button. Click this icon to open the extension settings panel and explore the customization options.
+Make a key once, paste the file's contents into the secret, and keep a copy somewhere safe. The workflow prints the
+resulting extension ID in its run summary. Either of these works:
+
+```sh
+openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt -out crx.pem
+```
+
+```sh
+node -e "require('fs').writeFileSync('crx.pem', require('crypto').generateKeyPairSync('rsa', {modulusLength: 2048, privateKeyEncoding: {type: 'pkcs8', format: 'pem'}, publicKeyEncoding: {type: 'spki', format: 'pem'}}).privateKey)"
+```
+
+AMO refuses to sign a version number it has already signed, so bump `version` in `manifest.json` before each tag.
+
+## License
+
+Copyright © 2026 Leon Ankert.
+
+Licensed under the [GNU Affero General Public License v3.0](LICENSE) or (at your option) any later version. Full
+text in [`LICENSE`](LICENSE).

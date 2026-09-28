@@ -1,0 +1,232 @@
+name: Build and release
+
+# Every push and pull request builds the unsigned packages and checks them.
+# Pushing a tag like v1.9.4 publishes a GitHub release right away with the
+# unsigned Firefox .xpi, unsigned Chromium .zip and signed .crx, then - once
+# AMO finishes signing, however long that takes - appends the signed Firefox
+# .xpi and its update manifest (updates.json) to that same release.
+#
+# Secrets (Settings > Secrets and variables > Actions), all optional:
+#   AMO_JWT_ISSUER, AMO_JWT_SECRET   Firefox signing (addons.mozilla.org API key)
+#   CRX_PRIVATE_KEY                  PEM private key for the .crx (its ID comes
+#                                    from this key, so keep using the same one)
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  build:
+    name: Build unsigned packages
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.pkg.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Splits manifest.json into build/firefox and build/chromium.
+      - name: Package
+        id: pkg
+        run: node .github/scripts/package.mjs --out build
+
+      - name: Tag must match the manifest version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          if [ "${GITHUB_REF_NAME#v}" != "${{ steps.pkg.outputs.version }}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match the version in manifest.json (${{ steps.pkg.outputs.version }}). Bump manifest.json first."
+            exit 1
+          fi
+
+      - name: Scripts parse
+        run: |
+          for f in build/firefox/*.js; do node --check "$f"; done
+
+      # --self-hosted: this package is signed on AMO's unlisted channel and
+      # self-distributed (never uploaded to the public AMO listing), which is
+      # exactly what update_url in manifest.json requires - the plain (listed)
+      # ruleset disallows update_url entirely, since AMO pushes updates for
+      # listed add-ons itself instead.
+      - name: Lint (Firefox package)
+        run: npx --yes web-ext lint --source-dir build/firefox --self-hosted
+
+      # An .xpi is a zip with the manifest at its root.
+      - name: Firefox .xpi (unsigned)
+        env:
+          VERSION: ${{ steps.pkg.outputs.version }}
+        run: |
+          mkdir -p dist
+          (cd build/firefox && zip -qr "../../dist/chitchat-theme-${VERSION}-firefox-unsigned.xpi" .)
+
+      # A .crx is always signed with some key (that's how Chromium derives the
+      # extension ID), so the "unsigned" Chromium package is the plain .zip:
+      # load it unpacked, or upload it to the Chrome Web Store.
+      - name: Chromium .zip (unsigned) and .crx (signed)
+        env:
+          VERSION: ${{ steps.pkg.outputs.version }}
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
+        run: |
+          mkdir -p dist
+          key="$RUNNER_TEMP/crx.pem"
+          zip_path="dist/chitchat-theme-${VERSION}-chromium-unsigned.zip"
+          if [ -n "$CRX_PRIVATE_KEY" ]; then
+            printf '%s\n' "$CRX_PRIVATE_KEY" > "$key"
+            npx --yes crx3@2.0.0 -p "$key" -o "dist/chitchat-theme-${VERSION}-chromium-signed.crx" -z "$zip_path" -- build/chromium
+            id="$(node .github/scripts/crx-id.mjs "$key")"
+            echo "Chromium extension ID: $id"
+            echo "Chromium extension ID: \`$id\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::CRX_PRIVATE_KEY is not set, so only the unsigned Chromium .zip is built (no .crx)."
+            # crx3 needs a key to run; this one is thrown away with its .crx.
+            npx --yes crx3@2.0.0 -p "$key" -o "$RUNNER_TEMP/throwaway.crx" -z "$zip_path" -- build/chromium
+          fi
+          rm -f "$key"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-unsigned
+          path: dist/*
+          if-no-files-found: error
+
+  sign-firefox:
+    name: Sign Firefox package (AMO)
+    needs: build
+    # Only for real releases: AMO refuses a version number it has already
+    # signed, so this must not run on every push.
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+      WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+      WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+    steps:
+      - name: No AMO credentials
+        if: env.WEB_EXT_API_KEY == ''
+        run: echo "::warning::AMO_JWT_ISSUER / AMO_JWT_SECRET are not set, so the Firefox package is not signed."
+
+      - uses: actions/checkout@v4
+        if: env.WEB_EXT_API_KEY != ''
+
+      - uses: actions/setup-node@v4
+        if: env.WEB_EXT_API_KEY != ''
+        with:
+          node-version: 22
+
+      # Unlisted channel: signed automatically, not listed on addons.mozilla.org.
+      - name: Sign
+        if: env.WEB_EXT_API_KEY != ''
+        run: |
+          node .github/scripts/package.mjs --out build
+          npx --yes web-ext sign --source-dir build/firefox --artifacts-dir signed --channel unlisted
+          mkdir -p dist
+          cp signed/*.xpi "dist/chitchat-theme-${VERSION}-firefox-signed.xpi"
+
+      - uses: actions/upload-artifact@v4
+        if: env.WEB_EXT_API_KEY != ''
+        with:
+          name: dist-signed-firefox
+          path: dist/*
+          if-no-files-found: error
+
+  # Publishes as soon as the (fast, synchronous) build is done: unsigned
+  # Firefox .xpi, unsigned Chromium .zip, signed .crx. Deliberately does NOT
+  # wait on sign-firefox - AMO review/signing can take anywhere from seconds
+  # to a while, and there's no reason to hold the rest of the release hostage
+  # to it.
+  publish-unsigned:
+    name: Publish GitHub release (unsigned)
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-unsigned
+          path: dist
+          merge-multiple: true
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          (cd dist && sha256sum * > SHA256SUMS.txt)
+          ls -l dist
+          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+
+  # Runs once sign-firefox finishes, however long that takes, and appends the
+  # signed .xpi plus the Firefox update manifest to the SAME release that
+  # publish-unsigned already created. Needing publish-unsigned too (not just
+  # sign-firefox) guarantees the release already exists, so this only ever
+  # adds files to it instead of racing to create it twice.
+  publish-signed:
+    name: Publish GitHub release (signed)
+    needs: [build, sign-firefox, publish-unsigned]
+    if: always() && needs.publish-unsigned.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+
+      # Firefox polls update_url (set in manifest.json to .../releases/latest/
+      # download/updates.json) for new versions of self-distributed, unlisted
+      # add-ons - there's no other auto-update path once it's not installed
+      # from the public AMO listing. Only written when the signed .xpi this
+      # run actually exists: a run where signing failed must never overwrite
+      # a good updates.json with one nobody can install from.
+      - name: Build Firefox update manifest (updates.json)
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          xpi="chitchat-theme-${VERSION}-firefox-signed.xpi"
+          if [ -f "dist/$xpi" ]; then
+            hash="sha256:$(sha256sum "dist/$xpi" | cut -d' ' -f1)"
+            link="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${xpi}"
+            printf '%s\n' \
+              '{' \
+              '  "addons": {' \
+              '    "chitchat-theme@liforra.de": {' \
+              '      "updates": [' \
+              '        {' \
+              "          \"version\": \"${VERSION}\"," \
+              "          \"update_link\": \"${link}\"," \
+              "          \"update_hash\": \"${hash}\"," \
+              '          "strict_min_version": "140.0"' \
+              '        }' \
+              '      ]' \
+              '    }' \
+              '  }' \
+              '}' \
+              > dist/updates.json
+          else
+            echo "::warning::No signed .xpi this run, so updates.json is not being (re)published - existing installs keep pointing at whatever the last signed release's updates.json said."
+          fi
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          (cd dist && sha256sum * > SHA256SUMS.txt)
+          ls -l dist
+          gh release upload "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --clobber
